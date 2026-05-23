@@ -10,7 +10,10 @@ import type { TranslationParams } from './i18n.types';
 export class TranslatePipe implements PipeTransform {
   private readonly i18n = inject(I18nService);
 
-  transform(key: string, params: TranslationParams = {}): string {
+  transform(key: string | null | undefined, params: TranslationParams = {}): string {
+    if (!key) {
+      return '';
+    }
     return this.i18n.t(key, params);
   }
 }

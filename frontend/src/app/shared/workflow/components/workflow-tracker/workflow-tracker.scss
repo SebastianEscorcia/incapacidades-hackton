@@ -1,0 +1,103 @@
+.tracker-wrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.tracker {
+  display: flex;
+  align-items: flex-start;
+  min-width: max-content;
+  padding: 0.5rem 0.25rem;
+}
+
+.tracker-item {
+  position: relative;
+  display: flex;
+  flex: 1 0 5.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 5.5rem;
+}
+
+.tracker-marker {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.tracker-label {
+  max-width: 5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.tracker-line {
+  position: absolute;
+  top: 1.125rem;
+  left: calc(50% + 1.125rem);
+  width: calc(100% - 2.25rem);
+  height: 2px;
+  background: #e2e8f0;
+}
+
+.tracker-line.done {
+  background: #38bdf8;
+}
+
+.tracker-item.done .tracker-marker {
+  border-color: #38bdf8;
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.tracker-item.done .tracker-label {
+  color: #0369a1;
+}
+
+.tracker-item.active .tracker-marker {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
+}
+
+.tracker-item.active .tracker-label {
+  color: #5b21b6;
+  font-weight: 700;
+}
+
+.tracker-item.pending .tracker-marker {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #cbd5e1;
+}
+
+@media (min-width: 768px) {
+  .tracker-item {
+    flex-basis: 6.5rem;
+    min-width: 6.5rem;
+  }
+
+  .tracker-label {
+    max-width: 6rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .tracker-label {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,63 @@
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.auth-error {
+  color: #dc2626;
+  font-size: 0.8125rem;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.auth-links {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.auth-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.auth-links a:hover {
+  border-color: #38bdf8;
+  background: #e0f2fe;
+}
+
+.auth-mock {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #bae6fd;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-password-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+}
+
+:host ::ng-deep .auth-submit {
+  width: 100%;
+  justify-content: center;
+}

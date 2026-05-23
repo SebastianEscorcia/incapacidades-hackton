@@ -9,11 +9,12 @@ import { AppConfigurator } from './app.configurator';
 import { AppBreadcrumb } from './app.breadcrumb';
 import { AppSidebar } from "./app.sidebar";
 import { MenuItem } from 'primeng/api';
+import { WorkflowTracker } from '@shared/workflow/components/workflow-tracker/workflow-tracker';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, AppConfigurator, AppBreadcrumb],
+    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, AppConfigurator, AppBreadcrumb, WorkflowTracker],
     template: `
         <div class="layout-wrapper" [ngClass]="containerClass">
             <div app-topbar></div>
@@ -22,6 +23,11 @@ import { MenuItem } from 'primeng/api';
                 <div class="layout-content">
                     <div class="layout-content-inner">
                         <nav app-breadcrumb></nav>
+                        @if (shouldShowTracker()) {
+                            <div class="mb-4 rounded-2xl border border-sky-200 bg-white p-3 shadow-sm">
+                                <workflow-tracker />
+                            </div>
+                        }
                         <router-outlet></router-outlet>
                         <div app-footer></div>
                     </div>
@@ -34,6 +40,13 @@ import { MenuItem } from 'primeng/api';
 export class AppLayout implements OnDestroy {
     overlayMenuOpenSubscription: Subscription;
     menu = input<MenuItem[]>([])
+    showWorkflowTracker = input(false)
+
+    shouldShowTracker(): boolean {
+        if (!this.showWorkflowTracker()) return false;
+        const url = this.router.url;
+        return url !== '/empresa' && url !== '/eps' && !url.includes('/timeline');
+    }
 
     tabOpenSubscription: Subscription;
 

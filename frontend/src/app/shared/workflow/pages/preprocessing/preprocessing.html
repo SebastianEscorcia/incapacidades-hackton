@@ -1,0 +1,29 @@
+<p-confirmdialog />
+<p-toast />
+
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'workflow.preprocessing.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'workflow.preprocessing.title' | translate }}</h1>
+  </header>
+
+  @if (loading()) {
+    <p-skeleton height="16rem" />
+  } @else {
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      @for (task of tasks(); track task.id) {
+        <article class="workflow-card p-4">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-sky-950">{{ task.label | translateContent }}</h2>
+            <i [class]="task.completed ? 'pi pi-check-circle text-emerald-500' : 'pi pi-spin pi-spinner text-sky-500'"></i>
+          </div>
+          @if (task.detail) { <p class="mt-2 text-sm text-slate-600">{{ task.detail | translateContent }}</p> }
+        </article>
+      }
+    </div>
+    <div class="workflow-actions">
+      <p-button [label]="'workflow.preprocessing.confirm' | translate" icon="pi pi-check" (onClick)="confirmStage()" />
+    </div>
+  }
+</section>

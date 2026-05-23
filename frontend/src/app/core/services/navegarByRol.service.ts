@@ -4,9 +4,10 @@ import { Router } from '@angular/router';
 export const ROLE_NAVIGATION_MAP = new InjectionToken<Record<string, string[]>>('ROLE_NAVIGATION_MAP');
 
 const DEFAULT_ROLE_ROUTES: Record<string, string[]> = {
-    'admin': ['/admin'],
-    'user': ['/user'],
-
+    admin: ['/admin'],
+    user: ['/public'],
+    empleador: ['/empresa'],
+    eps: ['/eps'],
 };
 
 @Injectable({

@@ -1,2 +1,2 @@
 
-export const logo = 'assets/images/shared/logo.png';
+export const logo = '/assets/images/shared/logo.png';

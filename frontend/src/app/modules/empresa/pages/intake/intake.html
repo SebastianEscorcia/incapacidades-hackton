@@ -1,0 +1,88 @@
+<p-confirmdialog />
+<p-toast />
+
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'empresa.intake.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'empresa.intake.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'empresa.intake.subtitle' | translate }}</p>
+  </header>
+
+  <div class="grid gap-4 xl:grid-cols-2">
+    <p-card [header]="'empresa.intake.newUpload' | translate" styleClass="workflow-card">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="flex flex-col gap-1">
+            <label for="companyId" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.company' | translate }}</label>
+            <p-select id="companyId" formControlName="companyId" [options]="companies" optionLabel="label" optionValue="value" [placeholder]="'empresa.intake.selectCompany' | translate" styleClass="w-full" />
+            @if (form.companyId.invalid && form.companyId.touched) {
+              <small class="text-red-500">{{ 'empresa.intake.required' | translate }}</small>
+            }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="batchName" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.batchName' | translate }}</label>
+            <input id="batchName" pInputText formControlName="batchName" class="w-full" />
+            @if (form.batchName.invalid && form.batchName.touched) {
+              <small class="text-red-500">{{ 'empresa.intake.required' | translate }}</small>
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="notes" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.notes' | translate }}</label>
+          <textarea id="notes" pTextarea formControlName="notes" rows="3" class="w-full"></textarea>
+        </div>
+
+        <div class="rounded-xl border border-dashed border-sky-300 bg-sky-50/50 p-4">
+          <p-fileUpload
+            mode="advanced"
+            [multiple]="true"
+            [auto]="false"
+            [chooseLabel]="'common.select' | translate"
+            accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx,.zip"
+            (onSelect)="onFilesSelected($event)"
+            (onRemove)="onFileRemoved($event)"
+          />
+          @if (!form.hasFiles() && submitted) {
+            <small class="text-red-500">{{ 'empresa.intake.atLeastOneFile' | translate }}</small>
+          }
+        </div>
+
+        <div class="workflow-actions flex gap-3">
+          <p-button type="submit" [label]="'empresa.intake.prepareUpload' | translate" icon="pi pi-upload" [disabled]="form.invalid || !form.hasFiles()" />
+          <p-button type="button" [label]="'empresa.intake.attachManually' | translate" icon="pi pi-user-edit" severity="secondary" [disabled]="form.companyId.invalid" (onClick)="anexarManualmente()" />
+        </div>
+      </form>
+    </p-card>
+
+    <p-card [header]="'empresa.intake.receptionValidations' | translate" styleClass="workflow-card">
+      @if (loading()) {
+        <p-skeleton height="12rem" />
+      } @else {
+        <p-table [value]="files" [paginator]="files.length > 5" [rows]="5" styleClass="text-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>{{ 'common.name' | translate }}</th>
+              <th>{{ 'common.type' | translate }}</th>
+              <th>{{ 'common.status' | translate }}</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-file>
+            <tr>
+              <td>{{ file.name }}</td>
+              <td><p-tag [value]="file.type" severity="info" /></td>
+              <td>
+                <p-tag [value]="file.validationStatus" [severity]="severity(file.validationStatus)" />
+                @if (file.validationMessage) {
+                  <small class="block text-red-500">{{ file.validationMessage }}</small>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </p-card>
+  </div>
+</section>

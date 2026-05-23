@@ -1,10 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { I18nService } from '@/core/i18n/i18n.service';
 
 @Injectable({ providedIn: 'root' })
 export class FormErroresMsg {
-  private _messageService = inject(MessageService)
+  private _messageService = inject(MessageService);
+  private _i18n = inject(I18nService);
 
   getErroresForm(formulario: FormGroup) {
     const errores: string[] = [];
@@ -12,8 +14,21 @@ export class FormErroresMsg {
     this._agregarErroresGrupo(formulario, errores);
 
     this._marcarFormularioError(formulario);
-    this._messageService.add({ severity: 'warn', summary: 'Error', detail: `${errores.join('\n')}` });
+    this._messageService.add({
+      severity: 'warn',
+      summary: this._i18n.t('validation.title'),
+      detail: `${errores.join('\n')}`,
+    });
   }
+
+  showCustomError(mensaje: string) {
+    this._messageService.add({
+      severity: 'warn',
+      summary: this._i18n.t('validation.title'),
+      detail: `• ${mensaje}`,
+    });
+  }
+
   private _marcarFormularioError(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach((control) => {
       control.markAsDirty();
@@ -23,10 +38,15 @@ export class FormErroresMsg {
       }
     });
   }
+
   private _agregarErroresGrupo(form: FormGroup, errores: string[], prefix: string = '') {
     if (form.errors) {
       if (form.hasError('passwordMismatch')) {
-        errores.push(`• ${prefix || 'Formulario'}: Las contraseñas no coinciden.`);
+        const fieldName = prefix || this._i18n.t('validation.form');
+        errores.push(this._i18n.t('validation.passwordMismatch', { field: fieldName }));
+      }
+      if (form.hasError('flowInterrupted')) {
+        errores.push(this._i18n.t('validation.flowInterrupted'));
       }
     }
 
@@ -39,7 +59,6 @@ export class FormErroresMsg {
       }
     });
   }
-
 
   private _recorrerControles(
     form: FormGroup,
@@ -68,22 +87,43 @@ export class FormErroresMsg {
   private _getErrorMessage(control: AbstractControl, nombre: string): string {
     if (!control.errors) return '';
 
-    if (control.hasError('required'))
-      return `• ${nombre}: Este campo es obligatorio.`;
-    if (control.hasError('email'))
-      return `• ${nombre}: Ingrese un email válido.`;
-    if (control.hasError('pattern')) return `• ${nombre}: Formato inválido.`;
-    if (control.hasError('minlength'))
-      return `• ${nombre}: Debe tener al menos ${control.errors['minlength'].requiredLength} caracteres.`;
-    if (control.hasError('maxlength'))
-      return `• ${nombre}: Debe tener como máximo ${control.errors['maxlength'].requiredLength} caracteres.`;
-    if (control.hasError('min'))
-      return `• ${nombre}: El valor mínimo permitido es ${control.errors['min'].min}.`;
-    if (control.hasError('max'))
-      return `• ${nombre}: El valor máximo permitido es ${control.errors['max'].max}.`;
-    if (control.hasError('passwordMismatch'))
-      return `• ${nombre}: Las contraseñas no coinciden.`;
+    if (control.hasError('required')) {
+      return this._i18n.t('validation.required', { field: nombre });
+    }
+    if (control.hasError('email')) {
+      return this._i18n.t('validation.email', { field: nombre });
+    }
+    if (control.hasError('pattern')) {
+      return this._i18n.t('validation.pattern', { field: nombre });
+    }
+    if (control.hasError('minlength')) {
+      return this._i18n.t('validation.minlength', {
+        field: nombre,
+        min: control.errors['minlength'].requiredLength,
+      });
+    }
+    if (control.hasError('maxlength')) {
+      return this._i18n.t('validation.maxlength', {
+        field: nombre,
+        max: control.errors['maxlength'].requiredLength,
+      });
+    }
+    if (control.hasError('min')) {
+      return this._i18n.t('validation.min', {
+        field: nombre,
+        min: control.errors['min'].min,
+      });
+    }
+    if (control.hasError('max')) {
+      return this._i18n.t('validation.max', {
+        field: nombre,
+        max: control.errors['max'].max,
+      });
+    }
+    if (control.hasError('passwordMismatch')) {
+      return this._i18n.t('validation.passwordMismatch', { field: nombre });
+    }
 
-    return `• ${nombre}: Campo inválido.`;
+    return this._i18n.t('validation.default', { field: nombre });
   }
 }
