@@ -15,7 +15,7 @@ import { MenuItem } from 'primeng/api';
     standalone: true,
     imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, AppConfigurator, AppBreadcrumb],
     template: `
-        <div class="layout-container" [ngClass]="containerClass">
+        <div class="layout-wrapper" [ngClass]="containerClass">
             <div app-topbar></div>
             <app-sidebar [menu]="menu()" ></app-sidebar>
             <div class="layout-content-wrapper">
