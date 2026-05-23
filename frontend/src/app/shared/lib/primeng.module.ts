@@ -27,7 +27,6 @@ import { DividerModule } from 'primeng/divider';
 import { DockModule } from 'primeng/dock';
 import { DrawerModule } from 'primeng/drawer';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
-import { EditorModule } from 'primeng/editor';
 import { FieldsetModule } from 'primeng/fieldset';
 import { FileUploadModule } from 'primeng/fileupload';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -128,7 +127,6 @@ export const PrimeNGModules = [
   DockModule,
   DrawerModule,
   DynamicDialogModule,
-  EditorModule,
   FieldsetModule,
   FileUploadModule,
   FloatLabelModule,

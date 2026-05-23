@@ -32,7 +32,6 @@
     "@tailwindcss/postcss": "^4.1.14",
     "postcss": "^8.5.6",
     "tailwindcss-primeui": "^0.6.1",
-    "quill": "^2.0.3",
     "chart.js": "^4.5.1",
     "primeclt": "^0.1.5",
     "dotenv": "^17.3.1"

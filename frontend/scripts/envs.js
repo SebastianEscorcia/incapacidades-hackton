@@ -14,15 +14,28 @@ if (missingEnv.length > 0) {
   process.exit(1);
 }
 
+const appName = process.env.APP_NAME || 'Frontend';
+const tokenKey = process.env.TOKEN || 'TOKEN';
+const keyUser = process.env.KEY_USER || 'USER';
+const rolKey = process.env.ROL || 'ROL';
+
 const envDevMode = `export const environment = {
   apiUrl: "${process.env.API_URL}",
   ipUrl: "${process.env.IP_URL}",
+  app_name: "${appName}",
+  TOKEN: "${tokenKey}",
+  KEY_USER: "${keyUser}",
+  ROL: "${rolKey}",
 };
 `;
 
 const envProdMode = `export const environment = {
   apiUrl: "${process.env.API_URL}",
   ipUrl: "${process.env.IP_URL}",
+  app_name: "${appName}",
+  TOKEN: "${tokenKey}",
+  KEY_USER: "${keyUser}",
+  ROL: "${rolKey}",
 };
 `;
 
