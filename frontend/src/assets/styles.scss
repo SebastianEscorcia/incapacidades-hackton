@@ -1,3 +1,120 @@
-/* You can add global styles to this file, and also import other style files */
 @use './tailwind.css';
+@use './layout/layout.scss';
 @use 'primeicons/primeicons.css';
+@use './demo/demo.scss';
+
+@supports (view-transition-name: none) {
+    .products-list-page {
+        view-transition-name: products-list-page;
+        contain: layout;
+    }
+
+    .product-detail-content {
+        view-transition-name: product-detail-content;
+        contain: layout;
+    }
+
+    ::view-transition-group(products-list-page) {
+        animation-duration: 120ms;
+        animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    ::view-transition-old(products-list-page) {
+        animation: products-list-out 120ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    ::view-transition-new(products-list-page) {
+        animation: products-list-in 120ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    ::view-transition-group(product-detail-content) {
+        animation-duration: 200ms;
+        animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    ::view-transition-old(product-detail-content) {
+        animation: product-detail-content-out 200ms cubic-bezier(0.2, 0, 0, 1) both;
+    }
+
+    ::view-transition-new(product-detail-content) {
+        animation: product-detail-content-in 240ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
+    }
+
+    ::view-transition-group(product-shared-image) {
+        animation-duration: 420ms;
+        animation-timing-function: cubic-bezier(0.18, 0.75, 0.26, 1);
+        z-index: 20;
+    }
+
+    ::view-transition-old(product-shared-image) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+
+    ::view-transition-new(product-shared-image) {
+        animation: none;
+        mix-blend-mode: normal;
+    }
+}
+
+@keyframes products-list-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes products-list-in {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes product-detail-content-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+}
+
+@keyframes product-detail-content-in {
+    from {
+        opacity: 0;
+        transform: translateX(14px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    ::view-transition-group(products-list-page),
+    ::view-transition-group(product-detail-content),
+    ::view-transition-group(product-shared-image),
+    ::view-transition-old(products-list-page),
+    ::view-transition-new(products-list-page),
+    ::view-transition-old(product-detail-content),
+    ::view-transition-new(product-detail-content) {
+        animation-duration: 1ms !important;
+        animation: none !important;
+    }
+}
