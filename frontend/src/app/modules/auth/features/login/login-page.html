@@ -1,0 +1,50 @@
+<auth-shell
+  [title]="'pages.auth' | translate"
+  [subtitle]="'pages.loginDescription' | translate"
+  icon="pi pi-sign-in"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <div class="auth-field">
+      <p-floatlabel>
+        <input id="email" type="email" pInputText formControlName="email" class="w-full" />
+        <label for="email">{{ 'auth.email' | translate }}</label>
+      </p-floatlabel>
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="auth-error">{{ 'auth.emailRequired' | translate }}</small>
+      }
+    </div>
+
+    <div class="auth-field">
+      <p-floatlabel>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          inputStyleClass="w-full"
+          styleClass="w-full"
+        />
+        <label for="password">{{ 'auth.password' | translate }}</label>
+      </p-floatlabel>
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <small class="auth-error">{{ 'auth.passwordRequired' | translate }}</small>
+      }
+    </div>
+
+    <div class="auth-actions">
+      <p-button type="submit" [disabled]="form.invalid" styleClass="auth-submit" label="{{ 'auth.loginAction' | translate }}" icon="pi pi-sign-in" />
+    </div>
+  </form>
+
+  <div class="auth-links">
+    <a routerLink="/auth/forgot-password">{{ 'auth.forgotPassword' | translate }}</a>
+    <a routerLink="/auth/register">{{ 'auth.createAccount' | translate }}</a>
+    <a routerLink="/public">{{ 'auth.backToStart' | translate }}</a>
+  </div>
+
+  <div class="auth-mock">
+    <small class="text-center text-slate-500">{{ 'auth.mockTitle' | translate }}</small>
+    <p-button label="{{ 'auth.enterAsCompany' | translate }}" icon="pi pi-building" severity="info" styleClass="w-full" (onClick)="enterAs('empresa')" />
+    <p-button label="{{ 'auth.enterAsEps' | translate }}" icon="pi pi-briefcase" severity="help" styleClass="w-full" (onClick)="enterAs('eps')" />
+  </div>
+</auth-shell>

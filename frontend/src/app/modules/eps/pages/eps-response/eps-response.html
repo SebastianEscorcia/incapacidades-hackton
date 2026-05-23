@@ -1,0 +1,31 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'eps.response.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'eps.response.title' | translate }}</h1>
+  </header>
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    @for (item of outcomes; track item.status) {
+      <article class="workflow-card p-3 text-sm"><p-tag [value]="item.label | translate" [severity]="item.severity" /><p class="mt-2 text-slate-600">{{ item.detail | translate }}</p></article>
+    }
+  </div>
+  <p-card [header]="'eps.response.registerResponse' | translate" styleClass="workflow-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+      <p-select formControlName="status" [options]="statusOptions" optionValue="value" styleClass="w-full">
+        <ng-template pTemplate="selectedItem" let-selectedOption>
+          {{ selectedOption.label | translate }}
+        </ng-template>
+        <ng-template pTemplate="item" let-option>
+          {{ option.label | translate }}
+        </ng-template>
+      </p-select>
+      <input pInputText formControlName="responseCode" [placeholder]="'eps.response.responseCode' | translate" class="w-full" />
+      <textarea pTextarea formControlName="notes" rows="3" class="w-full" [placeholder]="'eps.response.notes' | translate"></textarea>
+      @if (form.epsStatus.value === glosaStatus) {
+        <textarea pTextarea formControlName="correctionNotes" rows="3" class="w-full" [placeholder]="'eps.response.correctionNotes' | translate"></textarea>
+      }
+      <div class="workflow-actions"><p-button type="submit" [label]="'eps.response.submitResponse' | translate" icon="pi pi-reply" [disabled]="form.invalid" /></div>
+    </form>
+  </p-card>
+</section>

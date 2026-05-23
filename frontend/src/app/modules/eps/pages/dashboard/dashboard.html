@@ -1,0 +1,58 @@
+<p-toast />
+<section class="workflow-page">
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'eps.dashboard.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'eps.dashboard.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'eps.dashboard.subtitle' | translate }}</p>
+  </header>
+
+  @if (loading()) {
+    <p-skeleton height="8rem" styleClass="rounded-2xl" />
+  } @else if (data) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      @for (metric of data.metrics; track metric.label) {
+        <article class="workflow-card p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-600">{{ metric.label | translateContent }}</span>
+            <i [class]="metric.icon + ' text-sky-500'"></i>
+          </div>
+          <strong class="mt-2 block text-3xl text-sky-950">{{ metric.value }}</strong>
+        </article>
+      }
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <p-card [header]="'eps.dashboard.requirements' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.recentRequirements; track item.id) {
+            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+              <span>{{ item.title | translateContent }}</span>
+              <p-tag [value]="item.status | translateContent" severity="info" />
+            </li>
+          }
+        </ul>
+      </p-card>
+      <p-card [header]="'eps.dashboard.glosas' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.recentGlosas; track item.id) {
+            <li class="rounded-lg bg-amber-50 px-3 py-2 text-sm">
+              <strong>{{ item.code }}</strong> — {{ item.detail | translateContent }}
+            </li>
+          }
+        </ul>
+      </p-card>
+      <p-card [header]="'eps.dashboard.finalResults' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.finalResults; track item.id) {
+            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+              <span>{{ item.date }}</span>
+              <p-tag [value]="item.status" />
+            </li>
+          }
+        </ul>
+      </p-card>
+    </div>
+
+    <a routerLink="/eps/manual-review" pButton [label]="'eps.dashboard.startReview' | translate" icon="pi pi-arrow-right" class="p-button-sm"></a>
+  }
+</section>

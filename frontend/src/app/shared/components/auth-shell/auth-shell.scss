@@ -1,0 +1,129 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.auth-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 1fr;
+  background: #f0f9ff;
+}
+
+.auth-shell__brand {
+  display: none;
+  background: linear-gradient(145deg, #0ea5e9 0%, #38bdf8 45%, #7dd3fc 100%);
+  color: #fff;
+  padding: 2rem;
+}
+
+.auth-shell__brand-inner {
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+}
+
+.auth-shell__logo {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.auth-shell__brand h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+}
+
+.auth-shell__brand p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.auth-shell__features {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auth-shell__features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.auth-shell__panel {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-shell__panel-top {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.auth-shell__card {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 28rem);
+  border: 1px solid #bae6fd;
+  border-radius: 1.5rem;
+  background: #fff;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  box-shadow: 0 20px 50px rgba(14, 116, 144, 0.12);
+}
+
+.auth-shell__icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
+  border-radius: 0.875rem;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 1.25rem;
+}
+
+.auth-shell__heading {
+  text-align: center;
+}
+
+.auth-shell__heading h2 {
+  margin: 0;
+  color: #0c4a6e;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+}
+
+.auth-shell__heading p {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+@media (min-width: 992px) {
+  .auth-shell {
+    grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+  }
+
+  .auth-shell__brand {
+    display: grid;
+    place-items: center;
+  }
+
+  .auth-shell__panel {
+    position: relative;
+    padding: 2rem;
+  }
+}

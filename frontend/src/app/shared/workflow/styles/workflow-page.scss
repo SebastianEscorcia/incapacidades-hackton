@@ -1,0 +1,58 @@
+.workflow-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.workflow-header {
+  border: 1px solid #bae6fd;
+  border-radius: 1rem;
+  background: linear-gradient(to bottom right, #e0f2fe, #fff);
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(14, 116, 144, 0.08);
+}
+
+.workflow-eyebrow {
+  color: #38bdf8;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.workflow-title {
+  margin: 0.25rem 0 0;
+  color: #0c4a6e;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+}
+
+.workflow-subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.workflow-card {
+  border: 1px solid #bae6fd;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(14, 116, 144, 0.08);
+}
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .workflow-actions {
+    justify-content: stretch;
+  }
+
+  .workflow-actions :host ::ng-deep .p-button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,80 @@
+<section class="workflow-page">
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'empresa.dashboard.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'empresa.dashboard.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'empresa.dashboard.subtitle' | translate }}</p>
+  </header>
+
+  @if (loading) {
+    <p-skeleton height="8rem" styleClass="rounded-2xl" />
+  } @else if (data) {
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      @for (metric of data.metrics; track metric.label) {
+        <article class="workflow-card p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-600">{{ metric.label | translateContent }}</span>
+            <i [class]="metric.icon + ' text-sky-500'"></i>
+          </div>
+          <strong class="mt-2 block text-3xl text-sky-950">{{ metric.value }}</strong>
+        </article>
+      }
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <p-card [header]="'empresa.dashboard.requirements' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.recentRequirements; track item.id) {
+            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+              <span>{{ item.title | translateContent }}</span>
+              <p-tag [value]="item.status | translateContent" severity="info" />
+            </li>
+          }
+        </ul>
+      </p-card>
+      <p-card [header]="'empresa.dashboard.glosas' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.recentGlosas; track item.id) {
+            <li class="rounded-lg bg-amber-50 px-3 py-2 text-sm">
+              <strong>{{ item.code }}</strong> — {{ item.detail | translateContent }}
+            </li>
+          }
+        </ul>
+      </p-card>
+      <p-card [header]="'empresa.dashboard.finalResults' | translate" styleClass="workflow-card">
+        <ul class="grid gap-2">
+          @for (item of data.finalResults; track item.id) {
+            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+              <span>{{ item.date }}</span>
+              <p-tag [value]="item.status" />
+            </li>
+          }
+        </ul>
+      </p-card>
+    </div>
+
+    <p-card [header]="'empresa.dashboard.selectCompanyTitle' | translate" styleClass="workflow-card mt-4">
+      <p-table [value]="companies" styleClass="text-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>{{ 'common.id' | translate }}</th>
+            <th>{{ 'common.name' | translate }}</th>
+            <th>{{ 'common.sector' | translate }}</th>
+            <th>{{ 'common.identification' | translate }}</th>
+            <th>{{ 'common.action' | translate }}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-company>
+          <tr>
+            <td><p-tag [value]="company.id" severity="info" /></td>
+            <td><strong>{{ company.name }}</strong></td>
+            <td>{{ company.sector | translateContent }}</td>
+            <td>{{ company.ruc }}</td>
+            <td>
+              <p-button [label]="'empresa.dashboard.initCase' | translate" icon="pi pi-arrow-right" class="p-button-sm" (onClick)="selectCompany(company.id, company.name)" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  }
+</section>

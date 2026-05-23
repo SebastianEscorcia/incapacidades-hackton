@@ -8,14 +8,15 @@ import { TooltipModule } from 'primeng/tooltip';
 import { CommonModule } from '@angular/common';
 import { RippleModule } from 'primeng/ripple';
 import { LayoutService } from '../service/layout.service';
+import { TranslatePipe } from '@/core/i18n/translate.pipe';
 
 @Component({
     selector: '[app-menuitem]',
-    imports: [CommonModule, RouterModule, RippleModule, TooltipModule],
+    imports: [CommonModule, RouterModule, RippleModule, TooltipModule, TranslatePipe],
     template: `
         <ng-container>
             <div *ngIf="root && item.visible !== false" class="layout-menuitem-root-text">
-                {{ item.label }}
+                {{ item.label | translate }}
             </div>
             <a
                 *ngIf="(!item.routerLink || item.items) && item.visible !== false"
@@ -26,11 +27,11 @@ import { LayoutService } from '../service/layout.service';
                 [attr.target]="item.target"
                 tabindex="0"
                 pRipple
-                [pTooltip]="item.label"
+                [pTooltip]="item.label | translate"
                 [tooltipDisabled]="!(isSlim() && root && !active)"
             >
                 <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item.label }}</span>
+                <span class="layout-menuitem-text">{{ item.label | translate }}</span>
                 <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
             </a>
             <a
@@ -58,11 +59,11 @@ import { LayoutService } from '../service/layout.service';
                 [attr.target]="item.target"
                 tabindex="0"
                 pRipple
-                [pTooltip]="item.label"
+                [pTooltip]="item.label | translate"
                 [tooltipDisabled]="!(isSlim() && root)"
             >
                 <i [ngClass]="item.icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item.label }}</span>
+                <span class="layout-menuitem-text">{{ item.label | translate }}</span>
                 <i class="pi pi-fw pi-angle-down layout-submenu-toggler" *ngIf="item.items"></i>
             </a>
 

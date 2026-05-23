@@ -10,17 +10,20 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { FormsModule } from '@angular/forms';
 import { logo } from '@assets/images/shared';
+import { environment } from '../../../../environments/environment';
 import { LayoutService } from '../service/layout.service';
 import { AuthStore } from '@/modules/auth/store/auth.store';
+import { TranslatePipe } from '@/core/i18n/translate.pipe';
+import { LanguageSwitcher } from '@/shared/components/language-switcher/language-switcher';
 
 @Component({
     selector: '[app-topbar]',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, FormsModule, Ripple, InputText, ButtonModule, IconField, InputIcon],
+    imports: [RouterModule, CommonModule, StyleClassModule, FormsModule, Ripple, InputText, ButtonModule, IconField, InputIcon, TranslatePipe, LanguageSwitcher],
     template: `
         <div class="layout-topbar">
             <a class="app-logo" routerLink="/">
-                <img alt="app logo" [src]="imglogo" />
+                <img [alt]="'topbar.logoAlt' | translate" [src]="imgLogo" />
                 <span class="app-name">Verona</span>
             </a>
 
@@ -42,7 +45,7 @@ import { AuthStore } from '@/modules/auth/store/auth.store';
                         [state]="item.state"
                         [queryParams]="item.queryParams"
                     >
-                        <span>{{ item.label }}</span>
+                        <span>{{ item.label | translate }}</span>
                     </a>
                     <i class="pi pi-times" (click)="removeTab($event, item, i)"></i>
                 </li>
@@ -50,13 +53,14 @@ import { AuthStore } from '@/modules/auth/store/auth.store';
             </ul>
 
             <div class="topbar-actions">
+                <app-language-switcher class="flex items-center" />
                 <p-button icon="pi pi-palette" rounded (onClick)="layoutService.showConfigSidebar()"></p-button>
                 <div class="topbar-search" [ngClass]="{ 'topbar-search-active': searchActive }">
                     <button pButton [rounded]="true" severity="secondary" type="button" icon="pi pi-search" (click)="activateSearch()"></button>
 
                     <div class="search-input-wrapper">
                         <p-icon-field>
-                            <input #searchinput type="text" pInputText placeholder="Search" (blur)="deactivateSearch()" (keydown.escape)="deactivateSearch()" />
+                            <input #searchinput type="text" pInputText [placeholder]="'topbar.searchPlaceholder' | translate" (blur)="deactivateSearch()" (keydown.escape)="deactivateSearch()" />
                             <p-inputicon class="pi pi-search" />
                         </p-icon-field>
                     </div>
@@ -75,16 +79,16 @@ import { AuthStore } from '@/modules/auth/store/auth.store';
                         <li class="flex items-start flex-col">
                             <a pRipple (click)="page()" class="flex p-2 rounded-border w-full items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer">
                                 <i class="pi pi-user mr-4"></i>
-                                <span>Pagina</span>
+                                <span>{{ 'topbar.profilePage' | translate }}</span>
                             </a>
                        
                             <a pRipple (click)="changePassword()" class="flex p-2 rounded-border w-full items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer">
                                 <i class="pi pi-cog mr-4"></i>
-                                <span>Cambiar Contraseña</span>
+                                <span>{{ 'topbar.changePassword' | translate }}</span>
                             </a>
                             <a pRipple (click)="signOut()" class="flex p-2 rounded-border w-full items-center hover:bg-emphasis transition-colors duration-150 cursor-pointer">
                                 <i class="pi pi-power-off mr-4"></i>
-                                <span>Cerrar Sesion</span>
+                                <span>{{ 'topbar.signOut' | translate }}</span>
                             </a>
                         </li>
                     </ul>
@@ -97,8 +101,9 @@ import { AuthStore } from '@/modules/auth/store/auth.store';
     }
 })
 export class AppTopbar {
+    imgLogo = logo
     menu: MenuItem[] = [];
-    imglogo = logo
+    environment = environment;
     authStore = inject(AuthStore)
     private _router = inject(Router)
     @ViewChild('searchinput') searchInput!: ElementRef;
@@ -147,11 +152,11 @@ export class AppTopbar {
         this.layoutService.layoutConfig.update((state) => ({ ...state, layoutTheme: value }));
     }
 
-    get logo(): string {
-        const path = '/layout/images/logo-';
-        const logo = this.layoutService.isDarkTheme() || this.layoutService.layoutConfig().layoutTheme === 'primaryColor' ? 'light.png' : 'dark.png';
-        return path + logo;
-    }
+    // get logo(): string {
+    //     const path = '/layout/images/logo-';
+    //     const logo = this.layoutService.isDarkTheme() || this.layoutService.layoutConfig().layoutTheme === 'primaryColor' ? 'light.png' : 'dark.png';
+    //     return path + logo;
+    // }
 
     get tabs(): MenuItem[] {
         return this.layoutService.tabs;

@@ -1,0 +1,43 @@
+<auth-shell
+  [title]="'pages.register' | translate"
+  [subtitle]="'pages.registerDescription' | translate"
+  icon="pi pi-user-plus"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <div class="auth-field">
+      <p-floatlabel>
+        <input id="name" type="text" pInputText formControlName="name" class="w-full" />
+        <label for="name">{{ 'auth.fullName' | translate }}</label>
+      </p-floatlabel>
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <small class="auth-error">{{ 'auth.fullNameRequired' | translate }}</small>
+      }
+    </div>
+    <div class="auth-field">
+      <p-floatlabel>
+        <input id="email" type="email" pInputText formControlName="email" class="w-full" />
+        <label for="email">{{ 'auth.email' | translate }}</label>
+      </p-floatlabel>
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="auth-error">{{ 'auth.emailRequired' | translate }}</small>
+      }
+    </div>
+    <div class="auth-field">
+      <p-floatlabel>
+        <p-password inputId="password" formControlName="password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+        <label for="password">{{ 'auth.password' | translate }}</label>
+      </p-floatlabel>
+    </div>
+    <div class="auth-field">
+      <p-floatlabel>
+        <p-password inputId="confirmPassword" formControlName="confirmPassword" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
+        <label for="confirmPassword">{{ 'auth.confirmPassword' | translate }}</label>
+      </p-floatlabel>
+    </div>
+    <p-button type="submit" [disabled]="form.invalid" styleClass="auth-submit w-full" [label]="'auth.registerAction' | translate" icon="pi pi-user-plus" />
+  </form>
+  <div class="auth-links">
+    <a routerLink="/auth/login">{{ 'auth.alreadyHaveAccount' | translate }}</a>
+    <a routerLink="/public">{{ 'auth.backToStart' | translate }}</a>
+  </div>
+</auth-shell>

@@ -1,0 +1,18 @@
+<section class="workflow-page">
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'workflow.timeline.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'workflow.timeline.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'workflow.timeline.subtitle' | translate }}</p>
+  </header>
+  <p-timeline [value]="events()" align="alternate">
+    <ng-template pTemplate="content" let-event>
+      <article class="workflow-card p-4">
+        <p-tag [value]="'workflow.steps.' + event.stage | translate" severity="info" />
+        <small class="ml-2 text-slate-500">{{ event.timestamp | date: 'short' }}</small>
+        <h2 class="mt-1 font-semibold text-sky-950">{{ event.title | translateContent }}</h2>
+        <p class="text-sm text-slate-600">{{ event.description | translateContent }}</p>
+        <small class="text-sky-600">{{ 'workflow.timeline.actor' | translate }}: {{ event.actor | translateContent }}</small>
+      </article>
+    </ng-template>
+  </p-timeline>
+</section>
