@@ -1,0 +1,82 @@
+<div class="card">
+    <p-table #dt2 [value]="data().datos" dataKey="id" [rows]="rowsPerPage()" [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="loading()" [paginator]="true" [globalFilterFields]="globalFilterFields()"
+        [tableStyle]="{ 'min-width': '75rem' }" (onPage)="onPageChange($event)" [lazy]="true"
+        [totalRecords]="totalRecords()">
+        <ng-template #caption>
+            <div class="flex">
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event, dt2)"
+                        placeholder="Escribe una palabra clave" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                @for (column of visibleColumns(); track column) {
+                <th [style.width]="getColumnWidth(column)">
+                    {{ formatColumnHeader(column) }}
+                </th>
+                }
+                @if (showActions()) {
+                <th style="width: 150px">Acciones</th>
+                }
+            </tr>
+        </ng-template>
+        <ng-template #body let-item let-rowIndex="rowIndex">
+            <tr>
+                @for (column of visibleColumns(); track column) {
+                <td>
+                    @if (isImageColumn(column)) {
+                    <img [src]="getNestedValue(item, column)" [alt]="column" class="w-16 h-16 object-cover rounded-lg"
+                        (error)="onImageError($event)" />
+                    } @else if (isDateColumn(column)) {
+                    {{ formatDate(getNestedValue(item, column)) }}
+                    } @else if (isBooleanColumn(column)) {
+                    <i class="pi" [ngClass]="{
+                                'text-green-500 pi-check-circle': getNestedValue(item, column),
+                                'text-red-500 pi-times-circle': !getNestedValue(item, column)
+                            }"></i>
+                    } @else if (isStatusColumn(column)) {
+                    <p-tag [value]="getNestedValue(item, column)"
+                        [severity]="getSeverity(getNestedValue(item, column))" />
+                    } @else {
+                    {{ getNestedValue(item, column) }}
+                    }
+                </td>
+                }
+                @if (showActions()) {
+                <td>
+                    <div class="flex gap-2">
+                        @if (showViewAction()) {
+                        <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="info"
+                            (onClick)="onView(item)" />
+                        }
+                        @if (showEditAction()) {
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
+                            (onClick)="onEdit(item)" />
+                        }
+                        @if (showDeleteAction()) {
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                            (onClick)="onDelete(item)" />
+                        }
+                    </div>
+                </td>
+                }
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td [attr.colspan]="visibleColumns().length + (showActions() ? 1 : 0)" class="text-center">
+                    <div class="flex flex-col items-center justify-center py-8">
+                        <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-gray-500">No se encontraron registros</p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

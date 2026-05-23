@@ -1,0 +1,13 @@
+/* Para que el petId deshabilitado se vea gris pero profesional */
+:host ::ng-deep .p-disabled, :host ::ng-deep .p-disabled * {
+    background-color: #f3f4f6 !important; /* Gris claro */
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.previous-value {
+    color: #b98e00; /* Dorado/Amarillo oscuro para legibilidad */
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    font-style: italic;
+}

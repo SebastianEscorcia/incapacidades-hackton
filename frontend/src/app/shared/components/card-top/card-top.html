@@ -1,0 +1,21 @@
+<div class="rounded-xl p-5 mb-5 border-none shadow-sm flex items-center justify-between" 
+     style="background: linear-gradient(to right, var(--surface-card), var(--surface-ground)); border-color: var(--primary-color);">
+    
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-md transition-transform hover:scale-105"
+             style="background: var(--primary-color); color: var(--primary-color-text);">
+            <i [class]="'pi ' + datos().icon"></i>
+        </div>
+        
+        <div>
+            <h3 class="text-2xl font-bold m-0" style="color: var(--text-color)">
+                {{datos().title}}
+            </h3>
+            <p class="text-sm m-0" style="color: var(--text-color-secondary)">
+                {{datos().subtitle}}
+            </p>
+        </div>
+    </div>
+
+    <button pButton label="{{this.datos().buttonTitle}}" icon="pi pi-plus" class="p-button-rounded" routerLink="{{this.datos().route}}"></button>
+</div>

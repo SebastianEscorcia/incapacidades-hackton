@@ -1,0 +1,18 @@
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Angular
+/.angular/cache
+/dist
+/out-tsc
+/tmp
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# VS Code
+.vscode/

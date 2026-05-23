@@ -1,0 +1,57 @@
+.carousel-item {
+    height: 100%;
+    flex-shrink: 0;
+
+    &.active {
+        flex: 3;
+    }
+
+    &.inactive {
+        flex: 1;
+    }
+}
+
+.vertical-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+}
+
+.expanded-content {
+    pointer-events: none;
+
+    .carousel-item.active & {
+        pointer-events: auto;
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .carousel-item {
+        &.active {
+            flex: 2;
+        }
+
+        &.inactive {
+            flex: 0.5;
+        }
+    }
+
+    .vertical-text {
+        font-size: 0.875rem;
+        left: 0.5rem;
+        bottom: 1rem;
+    }
+
+    .expanded-content {
+        padding: 1rem;
+
+        h3 {
+            font-size: 1.25rem;
+        }
+
+        p {
+            font-size: 0.75rem;
+        }
+    }
+}

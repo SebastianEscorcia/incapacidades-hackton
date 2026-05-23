@@ -1,0 +1,28 @@
+<div class="flex items-center justify-center gap-1">
+  <button pRipple type="button" class="nav-btn" [disabled]="!hasPreviousPage()" (click)="goToFirstPage()"
+    aria-label="Primera página">
+    <i class="pi pi-angle-double-left text-sm"></i>
+  </button>
+
+  <button pRipple type="button" class="nav-btn" [disabled]="!hasPreviousPage()" (click)="goToPreviousPage()"
+    aria-label="Página anterior">
+    <i class="pi pi-angle-left text-sm"></i>
+  </button>
+
+  @for (page of pageList(); track page) {
+  <button pRipple type="button" class="page-btn" [class.active]="isActivePage(page.page)" (click)="goToPage(page.page)"
+    [attr.aria-label]="'Ir a página ' + page.page" [attr.aria-current]="isActivePage(page.page) ? 'page' : null">
+    {{ page.page }}
+  </button>
+  }
+
+  <button pRipple type="button" class="nav-btn" [disabled]="!hasNextPage()" (click)="goToNextPage()"
+    aria-label="Página siguiente">
+    <i class="pi pi-angle-right text-sm"></i>
+  </button>
+
+  <button pRipple type="button" class="nav-btn" [disabled]="!hasNextPage()" (click)="goToLastPage()"
+    aria-label="Última página">
+    <i class="pi pi-angle-double-right text-sm"></i>
+  </button>
+</div>

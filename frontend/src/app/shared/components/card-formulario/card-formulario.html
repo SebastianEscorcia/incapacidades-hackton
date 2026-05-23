@@ -1,0 +1,37 @@
+<p-toast />
+<p-dialog />
+<div
+    class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-screen overflow-hidden">
+    <div class="border-transparent flex flex-col items-center justify-center">
+        <div class="shadow-md" style="
+        box-shadow: 0 10px 28px rgba(6, 182, 212, 0.35);
+        border-radius: 56px;
+        padding: 0.3rem;
+        background: linear-gradient(
+          180deg,
+          #06b6d4 10%,
+          rgba(6, 182, 212, 0) 35%
+        );
+      ">
+            <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
+                <div class="text-center mb-8">
+                    <div class="mx-auto flex items-center justify-center" [class]="logoClass()">
+                        <img class="w-full h-full object-contain" [src]="imgLogo" alt="Veterinaria" />
+                    </div>
+
+                    <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">
+                        {{ datos().title }}
+                    </div>
+
+                    <span class="text-muted-color font-medium">
+                        {{ datos().description }}
+                    </span>
+                </div>
+
+                <div>
+                    <ng-content> </ng-content>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-2 pb-2">
+
+    <div class="col-span-1 lg:col-span-2">
+        <div class="rounded-lg p-6 border-l-4" style="
+          background-color: var(--surface-card);
+          border-color: var(--primary-color);
+        ">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold shadow-lg"
+                    style="
+              background-color: var(--primary-color);
+              color: var(--primary-color-text);
+            ">
+                    <i [class]="'pi ' + datos().icon"></i>
+                </div>
+
+                <h3 class="text-lg font-semibold" style="color: var(--text-color)">
+                    {{this.datos().title}}
+                </h3>
+            </div>
+
+            <div class=" md:grid-cols-2 gap-4 ">
+
+                <ng-content #name>
+
+                </ng-content>
+
+
+
+
+            </div>
+        </div>
+    </div>
+
+</div>

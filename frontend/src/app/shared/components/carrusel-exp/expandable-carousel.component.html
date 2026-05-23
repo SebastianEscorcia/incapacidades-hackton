@@ -1,0 +1,32 @@
+<div class="w-full ">
+    <div class="flex h-[500px] gap-2 px-4">
+        @for (item of items(); track item.id) {
+        <div class="carousel-item relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 ease-out"
+            [class.active]="activeIndex() === item.id" [class.inactive]="activeIndex() !== item.id"
+            (mouseenter)="setActive(item.id)">
+            <img [src]="item.image" [alt]="item.title" class="absolute inset-0 w-full h-full object-cover" />
+
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+
+            <div class="vertical-text absolute bottom-8 left-4 transition-all duration-500"
+                [class.opacity-0]="activeIndex() === item.id" [class.opacity-100]="activeIndex() !== item.id">
+                <span class="text-white text-lg font-semibold tracking-wider whitespace-nowrap">
+                    {{ item.title }}
+                </span>
+            </div>
+
+            <div class="expanded-content absolute bottom-0 left-0 right-0 p-6 transition-all duration-500"
+                [class.opacity-100]="activeIndex() === item.id" [class.opacity-0]="activeIndex() !== item.id"
+                [class.translate-y-0]="activeIndex() === item.id" [class.translate-y-4]="activeIndex() !== item.id">
+                <h3 class="text-white text-2xl font-bold mb-2">{{ item.title }}</h3>
+                <p class="text-white/80 text-sm mb-4 line-clamp-2">{{ item.description }}</p>
+                <!-- <a [href]="item.link"
+                    class="inline-flex items-center gap-2 text-white font-medium hover:gap-3 transition-all duration-300">
+                    Ver más
+                    <i class="pi pi-arrow-right text-sm"></i>
+                </a> -->
+            </div>
+        </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,110 @@
+<div class="filtros-container" [class]="'diseño-' + design">
+  <!-- Header -->
+  <div class="filtros-header">
+    <div class="header-content">
+      <h3 class="filtros-titulo">
+        <i class="pi pi-filter"></i>
+        {{ titulo() }}
+      </h3>
+
+      <div
+        class="header-actions"
+        *ngIf="mostrarLimpiar() && totalFiltrosActivos() > 0"
+      >
+        <span class="filtros-contador">
+          {{ totalFiltrosActivos() }} filtro{{
+            totalFiltrosActivos() !== 1 ? "s" : ""
+          }}
+          activo{{ totalFiltrosActivos() !== 1 ? "s" : "" }}
+        </span>
+        <p-button
+          label="Limpiar todo"
+          icon="pi pi-times"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          (onClick)="limpiarTodosFiltros()"
+        >
+        </p-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grupos de Filtros -->
+  <div class="filtros-content">
+    <div
+      *ngFor="let grupo of gruposFiltros(); let i = index"
+      class="grupo-filtros"
+      [style.animation-delay]="i * 0.1 + 's'"
+    >
+      <!-- Título del grupo -->
+      <div class="grupo-header">
+        <h4 class="grupo-titulo">{{ grupo.titulo }}</h4>
+      </div>
+
+      <!-- Botones del grupo -->
+      <div class="botones-container" [class]="'botones-' + design">
+        <!-- Botón "Todos" -->
+        <!-- <p-button
+          *ngIf="grupo.mostrarTodos !== false"
+          label="Todos"
+          icon="pi pi-list"
+          [severity]="
+            (filtrosActivos()[grupo.parametro] || []).length === 0
+              ? 'primary'
+              : 'secondary'
+          "
+          [outlined]="(filtrosActivos()[grupo.parametro] || []).length > 0"
+          size="small"
+          class="filtro-boton boton-todos"
+          (onClick)="seleccionarTodos(grupo)"
+        >
+        </p-button> -->
+
+        <!-- Botones de filtro -->
+        <p-button
+          *ngFor="let boton of grupo.botones; let j = index"
+          [label]="
+            boton.label +
+            (mostrarContadores() && boton.count !== undefined
+              ? ' (' + boton.count + ')'
+              : '')
+          "
+          [icon]="boton.icon || 'pi pi-tag'"
+          [severity]="obtenerSeverityBoton(grupo, boton)"
+          [outlined]="!estaActivo(grupo, boton)"
+          size="small"
+          class="filtro-boton"
+          [class.activo]="estaActivo(grupo, boton)"
+          [style.animation-delay]="(i * grupo.botones.length + j) * 0.05 + 's'"
+          (onClick)="toggleFiltro(grupo, boton)"
+        >
+        </p-button>
+      </div>
+
+      <div class="search-wrap">
+        <p-iconfield class="search-field">
+            <p-inputicon styleClass="pi pi-search" />
+            <input
+              type="text"
+              pInputText
+              placeholder="Buscar por nombre o documento"
+              class="search-input"
+              [(ngModel)]="busqueda"
+              (input)="onSearchInput($event)"
+              (keyup.enter)="buscar()"
+            />
+        </p-iconfield>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="gruposFiltros().length === 0">
+    <i class="pi pi-filter empty-icon"></i>
+    <h4 class="empty-title">No hay filtros configurados</h4>
+    <p class="empty-description">
+      No se han definido grupos de filtros para mostrar
+    </p>
+  </div>
+</div>

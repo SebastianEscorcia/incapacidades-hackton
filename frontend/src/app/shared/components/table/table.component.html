@@ -1,0 +1,161 @@
+<div class="card">
+
+  @if (showFiltros()) {
+  <app-filtro
+    [gruposFiltros]="gruposFiltros()"
+    [titulo]="titulo()"
+    (onTextSearch)="textSearch.emit($event)"
+  />
+
+  } @if(!isLoading()){
+  @if(data().datos.length>0){
+    
+  <p-table #dt1 [value]="data().datos" [rows]="10" [tableStyle]="{ 'min-width': '50rem' }">
+    @if (showHeaderSearch()) {
+    <ng-template #caption>
+      <div class="flex">
+        <p-iconfield iconPosition="left" class="ml-auto">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input pInputText type="text" [placeholder]="titleSearch()" (input)="onTextSearch($event)" />
+        </p-iconfield>
+
+        <p-button 
+      icon="pi pi-refresh" 
+      [loading]="isFetching()" 
+      (onClick)="refresh()" 
+      label="Actualizar"
+      severity="secondary"
+      [outlined]="true"
+      class="h-fit ml-5"
+      styleClass="rounded-xl">
+    </p-button>
+      </div>
+    </ng-template>
+    }
+
+    <ng-template pTemplate="header">
+      <tr>
+        @for (item of columnas(); track $index) {
+        @if (item !== 'id' ) {
+        <th style="width: 20%">{{ getColumnLabel(item) }}</th>
+        }
+        }
+        <th style="width: 15%" class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-customer>
+      <tr>
+        @for (item of columnas(); track $index) {
+
+        @if (item !== 'id') {
+
+        <td>
+
+          @if (item === 'image') {
+          <img [src]="getImageSrc(customer, item)" alt="Imagen" class="table-image" (error)="onImageError($event)" />
+          }
+
+          @else if (item === 'images') {
+          <img [src]="getImageSrc(customer, item)" alt="Imagen" class="table-image" (error)="onImageError($event)" />
+          }
+
+          @else if (item === 'paymentMethod') {
+          <p-tag [value]="formatPaymentMethod(customer[item])" severity="info"></p-tag>
+          }
+
+          @else if (isCurrencyField(item)) {
+          {{ toNumeric(customer[item]) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+          }
+          
+          @else {
+          {{ formatCellValue(customer[item], item) | truncate }}
+          
+          }
+          
+
+        </td>
+        }
+        }
+        <td class="text-center">
+          <div class="flex justify-content-center gap-2">
+            <p-button icon="pi pi-pencil" [rounded]="true" [outlined]="true" severity="info" size="small"
+              (onClick)="edit(customer)" pTooltip="Editar" />
+            <p-button icon="pi pi-eye" [rounded]="true" [outlined]="true" severity="help" size="small"
+              (onClick)="viewDetails(customer)" pTooltip="Ver detalles" />
+            @if (data().detailUrl) {
+            <p-button icon="pi pi-file" [rounded]="true" [outlined]="true" severity="contrast" size="small"
+              (onClick)="viewInvoiceDetail(customer)" pTooltip="Ver detalle de factura" />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+  </p-table>
+  <app-pagination class="pt-2" [totalPages]="totalPages()" />
+  }@else {
+  <app-no-data />
+  } } @else {
+  <div class="grid place-items-center h-full">
+    <p-progress-spinner ariaLabel="cargando" />
+  </div>
+  }
+</div>
+
+
+<p-dialog
+  [visible]="detailVisible()"
+  (visibleChange)="detailVisible.set($event)"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [style]="{ width: 'min(95vw, 720px)' }"
+  [breakpoints]="{ '960px': '95vw' }"
+  header="Detalle"
+  (onHide)="closeDetails()"
+>
+  @if (selectedDetail(); as detail) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      @for (key of detailKeys(); track key) {
+        <div class="rounded-lg border border-surface-200 p-3">
+          <div class="text-xs text-surface-500 mb-1">{{ getColumnLabel(key) }}</div>
+
+          @if (key === 'image' || key === 'images') {
+            <img
+              [src]="getImageSrc(detail, key)"
+              alt="Imagen"
+              class="w-20 h-20 object-cover rounded-md border border-surface-200"
+              (error)="onImageError($event)"
+            />
+          } @else if (isLineItemsKey(key)) {
+            <div class="space-y-2">
+              @for (lineItem of normalizeLineItems(detail[key]); track lineItem?.id ?? $index) {
+                <div class="rounded-md border border-surface-200 p-2">
+                  <div class="text-sm font-semibold">{{ getLineItemName(lineItem) }}</div>
+                  <div class="text-xs text-surface-500">
+                    SKU: {{ getLineItemSku(lineItem) }} | Cantidad: {{ getLineItemQuantity(lineItem) }}
+                  </div>
+                </div>
+              } @empty {
+                <div class="font-medium text-sm">Sin productos</div>
+              }
+            </div>
+          } @else if (key === 'paymentMethod') {
+            <p-tag [value]="formatPaymentMethod(detail[key])" severity="info"></p-tag>
+          } @else if (isCurrencyField(key)) {
+            <div class="font-medium text-sm">
+              {{ toNumeric(detail[key]) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+            </div>
+          } @else {
+            <div class="font-medium text-sm">
+              {{ getDetailValue(detail[key], key) }}
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</p-dialog>

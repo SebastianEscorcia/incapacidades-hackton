@@ -1,0 +1,124 @@
+@reference "tailwindcss";
+
+.filtros-container {
+  @apply rounded-2xl p-4 md:p-5 mb-4;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--surface-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 8%, transparent) 0%, transparent 45%),
+    var(--surface-card);
+  box-shadow:
+    0 10px 24px -18px rgba(0, 0, 0, 0.35),
+    0 1px 0 0 color-mix(in srgb, var(--surface-border) 75%, transparent) inset;
+}
+
+.filtros-header {
+  @apply mb-4;
+}
+
+.header-content {
+  @apply flex flex-col gap-3 md:flex-row md:items-center md:justify-between;
+}
+
+.filtros-titulo {
+  @apply m-0 text-base md:text-lg font-semibold flex items-center gap-2;
+  color: var(--text-color);
+}
+
+.filtros-titulo i {
+  color: var(--primary-color);
+}
+
+.header-actions {
+  @apply flex items-center gap-2;
+}
+
+.filtros-contador {
+  @apply text-xs md:text-sm font-semibold px-3 py-1 rounded-full;
+  color: #0b3a46;
+  background: color-mix(in srgb, var(--primary-color) 28%, #ffffff);
+}
+
+.filtros-content {
+  @apply grid grid-cols-1 gap-3;
+}
+
+.grupo-filtros {
+  @apply rounded-xl p-3 md:p-4;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 14%, var(--surface-border));
+  background: color-mix(in srgb, var(--surface-card) 88%, var(--primary-color) 4%);
+}
+
+.grupo-header {
+  @apply mb-3;
+}
+
+.grupo-titulo {
+  @apply m-0 text-sm md:text-base font-semibold;
+  color: var(--text-color);
+}
+
+.botones-container {
+  @apply flex flex-wrap gap-2;
+}
+
+.botones-horizontal {
+  @apply flex flex-wrap gap-2;
+}
+
+.botones-vertical {
+  @apply flex flex-col gap-2;
+}
+
+.botones-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2;
+}
+
+.filtro-boton {
+  @apply transition-all duration-200;
+}
+
+.filtro-boton:hover {
+  transform: translateY(-1px);
+}
+
+.filtro-boton.activo {
+  filter: saturate(1.15);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 24%, transparent);
+}
+
+.search-wrap {
+  @apply mt-3;
+}
+
+.search-field {
+  @apply w-full;
+}
+
+.search-input {
+  @apply w-full;
+}
+
+.empty-state {
+  @apply text-center py-10;
+}
+
+.empty-icon {
+  @apply text-3xl mb-3;
+  color: var(--text-color-secondary);
+}
+
+.empty-title {
+  @apply text-base font-semibold mb-1;
+  color: var(--text-color);
+}
+
+.empty-description {
+  @apply text-sm;
+  color: var(--text-color-secondary);
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    @apply w-full justify-between;
+  }
+}
