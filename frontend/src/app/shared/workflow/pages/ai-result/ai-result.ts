@@ -25,6 +25,7 @@ export class AiResultPage implements OnInit {
   protected readonly approved = AiResultStatus.Approved;
   protected readonly rejected = AiResultStatus.Rejected;
   protected readonly manual = AiResultStatus.ManualReview;
+  protected readonly pending = AiResultStatus.Pending;
   protected loading = signal(true);
   protected result: AiResultSummary | null = null;
 

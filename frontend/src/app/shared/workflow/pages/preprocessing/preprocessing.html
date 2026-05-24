@@ -15,10 +15,10 @@
       @for (task of tasks(); track task.id) {
         <article class="workflow-card p-4">
           <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-sky-950">{{ task.label | translateContent }}</h2>
-            <i [class]="task.completed ? 'pi pi-check-circle text-emerald-500' : 'pi pi-spin pi-spinner text-sky-500'"></i>
+            <h2 class="workflow-card-title">{{ task.label | translateContent }}</h2>
+            <i [class]="task.completed ? 'pi pi-check-circle workflow-check-icon--ok' : 'pi pi-spin pi-spinner workflow-spinner-icon'"></i>
           </div>
-          @if (task.detail) { <p class="mt-2 text-sm text-slate-600">{{ task.detail | translateContent }}</p> }
+          @if (task.detail) { <p class="mt-2 text-sm workflow-text-muted">{{ task.detail | translateContent }}</p> }
         </article>
       }
     </div>

@@ -1,6 +1,36 @@
+.step-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.75rem;
+  background: var(--surface-card);
+  padding: 0.5rem 0.75rem;
+  color: var(--text-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.step-link:hover {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+}
+
+.step-link i {
+  color: var(--primary-color);
+}
+
+@media (min-width: 768px) {
+  .step-link {
+    font-size: 0.875rem;
+  }
+}
+
 .step-active,
 .step-current {
-  border-color: #38bdf8;
-  background: #e0f2fe;
-  color: #0c4a6e;
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, var(--surface-card));
+  color: var(--text-color);
 }

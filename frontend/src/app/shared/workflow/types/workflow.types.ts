@@ -4,6 +4,7 @@ import {
   IntakeValidationStatus,
   WorkflowStage,
 } from './workflow.enums';
+import { IncapacidadExtractedData } from './ai.types';
 
 export interface WorkflowStep {
   stage: WorkflowStage;
@@ -61,4 +62,9 @@ export interface AiResultSummary {
   status: AiResultStatus;
   confidence: number;
   findings: string[];
+  incapacidadId?: string;
+  motivo?: string;
+  datosExtraidos?: IncapacidadExtractedData;
+  requiereVerificacionRethus?: boolean;
+  fechaProcesamiento?: string;
 }

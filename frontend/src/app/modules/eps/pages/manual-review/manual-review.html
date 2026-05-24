@@ -10,21 +10,21 @@
     <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
       <div class="grid gap-3 sm:grid-cols-2">
         @for (item of checklist; track item.control) {
-          <label class="flex items-center gap-3 rounded-xl border border-sky-200 bg-white p-3">
+          <label class="workflow-choice-item">
             <p-checkbox [formControlName]="item.control" [binary]="true" />
-            <span class="text-sm font-medium text-sky-950">{{ item.label | translate }}</span>
+            <span class="workflow-choice-label">{{ item.label | translate }}</span>
           </label>
         }
       </div>
       <div>
-        <label class="text-sm font-semibold text-sky-900">{{ 'eps.manualReview.requiresCompanyAction' | translate }}</label>
+        <label class="workflow-field-label">{{ 'eps.manualReview.requiresCompanyAction' | translate }}</label>
         <div class="mt-2 flex gap-4">
           <label class="flex items-center gap-2"><p-radiobutton formControlName="requiresCompanyAction" [value]="true" /><span>{{ 'eps.manualReview.yes' | translate }}</span></label>
           <label class="flex items-center gap-2"><p-radiobutton formControlName="requiresCompanyAction" [value]="false" /><span>{{ 'eps.manualReview.no' | translate }}</span></label>
         </div>
       </div>
       <div>
-        <label for="decisionNotes" class="text-sm font-semibold text-sky-900">{{ 'eps.manualReview.decisionNotes' | translate }}</label>
+        <label for="decisionNotes" class="workflow-field-label">{{ 'eps.manualReview.decisionNotes' | translate }}</label>
         <textarea id="decisionNotes" pTextarea formControlName="decisionNotes" rows="4" class="mt-1 w-full"></textarea>
       </div>
       <div class="workflow-actions"><p-button type="submit" [label]="'eps.manualReview.registerReview' | translate" icon="pi pi-check" [disabled]="form.invalid" /></div>

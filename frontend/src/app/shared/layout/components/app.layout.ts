@@ -15,6 +15,7 @@ import { WorkflowTracker } from '@shared/workflow/components/workflow-tracker/wo
     selector: 'app-layout',
     standalone: true,
     imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, AppConfigurator, AppBreadcrumb, WorkflowTracker],
+    styleUrl: './app.layout.scss',
     template: `
         <div class="layout-wrapper" [ngClass]="containerClass">
             <div app-topbar></div>
@@ -24,7 +25,7 @@ import { WorkflowTracker } from '@shared/workflow/components/workflow-tracker/wo
                     <div class="layout-content-inner">
                         <nav app-breadcrumb></nav>
                         @if (shouldShowTracker()) {
-                            <div class="mb-4 rounded-2xl border border-sky-200 bg-white p-3 shadow-sm">
+                            <div class="workflow-tracker-shell">
                                 <workflow-tracker />
                             </div>
                         }

@@ -8,10 +8,10 @@
     <ng-template pTemplate="content" let-event>
       <article class="workflow-card p-4">
         <p-tag [value]="'workflow.steps.' + event.stage | translate" severity="info" />
-        <small class="ml-2 text-slate-500">{{ event.timestamp | date: 'short' }}</small>
-        <h2 class="mt-1 font-semibold text-sky-950">{{ event.title | translateContent }}</h2>
-        <p class="text-sm text-slate-600">{{ event.description | translateContent }}</p>
-        <small class="text-sky-600">{{ 'workflow.timeline.actor' | translate }}: {{ event.actor | translateContent }}</small>
+        <small class="ml-2 workflow-text-muted">{{ event.timestamp | date: 'short' }}</small>
+        <h2 class="workflow-event-title">{{ event.title | translateContent }}</h2>
+        <p class="text-sm workflow-text-muted">{{ event.description | translateContent }}</p>
+        <small class="workflow-text-accent">{{ 'workflow.timeline.actor' | translate }}: {{ event.actor | translateContent }}</small>
       </article>
     </ng-template>
   </p-timeline>

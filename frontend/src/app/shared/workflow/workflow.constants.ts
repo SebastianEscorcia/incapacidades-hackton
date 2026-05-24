@@ -11,14 +11,6 @@ export interface FlowStepConfig {
   owner: WorkflowOwner;
 }
 
-export const WORKFLOW_SKY = {
-  primary: '#7dd3fc',
-  primaryDark: '#38bdf8',
-  primaryLight: '#e0f2fe',
-  border: '#bae6fd',
-  text: '#0c4a6e',
-} as const;
-
 /** Orden real del flujo documental con dueño por actor. */
 export const WORKFLOW_FLOW: FlowStepConfig[] = [
   { stage: WorkflowStage.Intake, label: 'Carga', segment: 'intake', icon: 'pi pi-upload', owner: 'empresa' },

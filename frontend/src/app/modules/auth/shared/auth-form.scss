@@ -9,7 +9,7 @@
 }
 
 .auth-error {
-  color: #dc2626;
+  color: var(--p-red-500, #ef4444);
   font-size: 0.8125rem;
 }
 
@@ -28,18 +28,18 @@
   align-items: center;
   justify-content: center;
   min-height: 2.5rem;
-  border: 1px solid #bae6fd;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, var(--surface-border));
   border-radius: 999px;
-  background: #f0f9ff;
-  color: #0369a1;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  color: var(--primary-color);
   font-weight: 700;
   text-decoration: none;
   transition: all 0.15s ease;
 }
 
 .auth-links a:hover {
-  border-color: #38bdf8;
-  background: #e0f2fe;
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 15%, var(--surface-card));
 }
 
 .auth-mock {
@@ -47,7 +47,13 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px dashed #bae6fd;
+  border-top: 1px dashed var(--surface-border);
+}
+
+.auth-muted {
+  color: var(--text-color-secondary);
+  text-align: center;
+  font-size: 0.8125rem;
 }
 
 :host ::ng-deep .p-inputtext,

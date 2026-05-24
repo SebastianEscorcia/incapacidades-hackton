@@ -1,9 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, Observable, of } from 'rxjs';
+import { AiIncapacidadAdapter } from '../adapters/ai-incapacidad.adapter';
 import { EpsResponseAdapter } from '../adapters/eps-response.adapter';
 import { IntakeAdapter } from '../adapters/intake.adapter';
 import { ProcessingAdapter } from '../adapters/processing.adapter';
 import { WorkflowAdapter } from '../adapters/workflow.adapter';
+import { WorkflowFlowMockService } from '../mocks/workflow-flow.mock.service';
+import { AiIncapacidadService, AiApiError } from './ai-incapacidad.service';
 import {
   AiResultStatus,
   AiResultSummary,
@@ -13,6 +16,9 @@ import {
   EpsResponsePayload,
   EpsResponseStatus,
   ExpedientePayload,
+  FraudeAlerta,
+  IncapacidadListFilters,
+  IncapacidadListItem,
   IntakeFileResponse,
   IntakeUploadPayload,
   IntakeValidationStatus,
@@ -25,47 +31,76 @@ import {
   WorkflowTimelineEvent,
 } from '../types';
 
-// Removed artificial mock delays to avoid UI freeze; use signals for loading state.
-
-// Ejemplo de cómo conectar la API real y manejar errores (comentar / copiar cuando se implemente):
-/*
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { firstValueFrom, catchError, throwError } from 'rxjs';
-import { environment } from '@environments/environment.development';
-
-@Injectable({ providedIn: 'root' })
-export class RealWorkflowService {
-  private _http = inject(HttpClient);
-  private _api = environment.apiUrl;
-  private _prefix = 'workflow';
-
-  // Ejemplo: subir intake usando la API real con manejo de errores
-  async uploadIntakeApi(model: any, files: File[]) {
-    // Preparar payload / formData según API
-    const response = await firstValueFrom(
-      this._http.post<any>(`${this._api}/${this._prefix}/intake`, model).pipe(
-        catchError(err => throwError(() => err))
-      )
-    );
-    return response.data;
-  }
-}
-*/
-
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
+  private readonly ai = inject(AiIncapacidadService);
+  private readonly flow = inject(WorkflowFlowMockService);
+
   async uploadIntake(model: IntakeUploadPayload, files: File[]): Promise<IntakeFileResponse[]> {
     void IntakeAdapter.toJsonPayload(model);
-    void files;
-    return firstValueFrom(of(this.mockIntakeFiles()));
+    if (!files.length) return [];
+
+    const uploaded: IntakeFileResponse[] = [];
+    const incapacidadIds: string[] = [];
+
+    for (const file of files) {
+      const result = await this.ai.uploadDocumento(file);
+      uploaded.push(AiIncapacidadAdapter.uploadToIntakeFile(result, file));
+      incapacidadIds.push(result.id);
+    }
+
+    this.flow.activeCase.update((current) => ({
+      ...current,
+      incapacidadIds,
+      primaryIncapacidadId: incapacidadIds[0],
+      updatedAt: new Date().toISOString(),
+    }));
+
+    return uploaded;
   }
 
   async getIntakeValidations(): Promise<IntakeFileResponse[]> {
-    return firstValueFrom(of(this.mockIntakeFiles()));
+    const primaryId = this.flow.activeCase().primaryIncapacidadId;
+    if (!primaryId) {
+      return firstValueFrom(of(this.mockIntakeFiles()));
+    }
+
+    try {
+      const detail = await this.ai.getIncapacidad(primaryId);
+      return [
+        {
+          id: detail.id,
+          name: `incapacidad-${detail.id.slice(0, 8)}`,
+          type: DocumentFileType.Pdf,
+          sizeBytes: 0,
+          validationStatus: this.mapAiStatusToValidation(detail.estado),
+          validationMessage: detail.findings[0],
+        },
+      ];
+    } catch {
+      return firstValueFrom(of(this.mockIntakeFiles()));
+    }
   }
 
   async getPreprocessingTasks(): Promise<PreprocessingTask[]> {
+    const primaryId = this.flow.activeCase().primaryIncapacidadId;
+    if (primaryId) {
+      try {
+        const detail = await this.ai.getIncapacidad(primaryId);
+        const processed = detail.estado !== AiResultStatus.Pending;
+        return [
+          { id: '1', label: 'OCR', completed: processed, detail: processed ? 'Texto extraído' : 'En procesamiento' },
+          { id: '2', label: 'Extracción IA', completed: processed, detail: detail.datosExtraidos ? 'Datos clínicos detectados' : undefined },
+          { id: '3', label: 'Validación documental', completed: processed },
+          { id: '4', label: 'Motor antifraude', completed: processed, detail: detail.findings[0] },
+          { id: '5', label: 'Normalización', completed: processed },
+          { id: '6', label: 'Indexación', completed: processed },
+        ];
+      } catch {
+        // fallback mock
+      }
+    }
+
     return firstValueFrom(
       of([
         { id: '1', label: 'OCR', completed: true, detail: 'Texto extraído' },
@@ -79,6 +114,16 @@ export class WorkflowService {
   }
 
   async getAiValidationMetrics(): Promise<AiValidationMetric[]> {
+    const primaryId = this.flow.activeCase().primaryIncapacidadId;
+    if (primaryId) {
+      try {
+        const detail = await this.ai.getIncapacidad(primaryId);
+        return AiIncapacidadAdapter.toMetrics(detail);
+      } catch {
+        // fallback mock
+      }
+    }
+
     return firstValueFrom(
       of([
         { id: '1', label: 'Calidad imagen', score: 92, status: IntakeValidationStatus.Valid },
@@ -93,6 +138,16 @@ export class WorkflowService {
   }
 
   async getAiResult(): Promise<AiResultSummary> {
+    const primaryId = this.flow.activeCase().primaryIncapacidadId;
+    if (primaryId) {
+      try {
+        const detail = await this.ai.getIncapacidad(primaryId);
+        return AiIncapacidadAdapter.toAiResultSummary(detail);
+      } catch {
+        // fallback mock
+      }
+    }
+
     return firstValueFrom(of(
       ProcessingAdapter.toAiResult({
         status: AiResultStatus.ManualReview,
@@ -129,6 +184,30 @@ export class WorkflowService {
   }
 
   async getInstitutionalValidations(): Promise<ValidationCheck[]> {
+    const primaryId = this.flow.activeCase().primaryIncapacidadId;
+    if (primaryId) {
+      try {
+        const detail = await this.ai.getIncapacidad(primaryId);
+        const registro = detail.datosExtraidos?.medicoRegistroDocumento;
+        const rethus = registro ? await this.ai.verificarRethus(registro) : null;
+
+        return [
+          {
+            id: '1',
+            label: 'Médico en RETHUS',
+            passed: rethus ? rethus.existe && rethus.estado === 'ACTIVO' : !detail.requiereVerificacionRethus,
+            detail: rethus ? `${rethus.nombreMedico} (${rethus.estado})` : undefined,
+          },
+          { id: '2', label: 'IPS/prestador en REPS', passed: Boolean(detail.datosExtraidos?.ipsNombre) },
+          { id: '3', label: 'Afiliación EPS', passed: Boolean(detail.datosExtraidos?.eps), detail: detail.datosExtraidos?.eps },
+          { id: '4', label: 'Validación gubernamental futura', passed: true },
+          { id: '5', label: 'Coherencia datos usuario', passed: detail.anomaliasDetectadas.length === 0, detail: detail.anomaliasDetectadas[0] },
+        ];
+      } catch {
+        // fallback mock
+      }
+    }
+
     return firstValueFrom(of(
       WorkflowAdapter.toValidationChecks({
         checks: [
@@ -168,6 +247,15 @@ export class WorkflowService {
   }
 
   async getDashboard(): Promise<DashboardSummary> {
+    try {
+      const items = await this.ai.listIncapacidades();
+      if (items.length) {
+        return this.buildDashboardFromIncapacidades(items);
+      }
+    } catch {
+      // fallback mock
+    }
+
     return firstValueFrom(of(
       WorkflowAdapter.toDashboard({
         metrics: [
@@ -186,6 +274,59 @@ export class WorkflowService {
   async confirmStage(stage: WorkflowStage): Promise<{ success: boolean }> {
     void stage;
     return firstValueFrom(of({ success: true }));
+  }
+
+  async listIncapacidades(filters: IncapacidadListFilters = {}): Promise<IncapacidadListItem[]> {
+    return this.ai.listIncapacidades(filters);
+  }
+
+  async getFraudeAlertas(): Promise<FraudeAlerta[]> {
+    return this.ai.getAlertas();
+  }
+
+  isAiApiError(error: unknown): error is AiApiError {
+    return error instanceof AiApiError;
+  }
+
+  private buildDashboardFromIncapacidades(items: IncapacidadListItem[]): DashboardSummary {
+    const inProgress = items.filter((item) => item.estado === AiResultStatus.Pending || item.estado === AiResultStatus.ManualReview).length;
+    const approved = items.filter((item) => item.estado === AiResultStatus.Approved).length;
+    const rejected = items.filter((item) => item.estado === AiResultStatus.Rejected).length;
+
+    return {
+      metrics: [
+        { label: 'En proceso', value: inProgress, icon: 'pi pi-sync' },
+        { label: 'Aprobados', value: approved, icon: 'pi pi-check-circle' },
+        { label: 'Glosas', value: items.filter((item) => item.anomaliasDetectadas.length > 0).length, icon: 'pi pi-exclamation-circle' },
+        { label: 'Rechazados', value: rejected, icon: 'pi pi-times-circle' },
+      ],
+      recentRequirements: items
+        .filter((item) => item.estado === AiResultStatus.ManualReview)
+        .slice(0, 3)
+        .map((item) => ({
+          id: item.id,
+          title: item.datosExtraidos?.pacienteNombre ?? item.id,
+          status: 'Pendiente',
+        })),
+      recentGlosas: items
+        .flatMap((item) => item.anomaliasDetectadas.map((detail, index) => ({ id: `${item.id}-${index}`, code: item.id.slice(0, 8).toUpperCase(), detail })))
+        .slice(0, 3),
+      finalResults: items
+        .filter((item) => item.estado === AiResultStatus.Approved)
+        .slice(0, 3)
+        .map((item) => ({
+          id: item.id,
+          status: EpsResponseStatus.Approved,
+          date: item.fechaProcesamiento?.slice(0, 10) ?? '',
+        })),
+    };
+  }
+
+  private mapAiStatusToValidation(status: AiResultStatus): IntakeValidationStatus {
+    if (status === AiResultStatus.Approved) return IntakeValidationStatus.Valid;
+    if (status === AiResultStatus.Rejected) return IntakeValidationStatus.Invalid;
+    if (status === AiResultStatus.ManualReview || status === AiResultStatus.Pending) return IntakeValidationStatus.Warning;
+    return IntakeValidationStatus.Pending;
   }
 
   private mockIntakeFiles(): IntakeFileResponse[] {

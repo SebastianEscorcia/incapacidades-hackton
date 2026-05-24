@@ -1,18 +1,23 @@
 .workflow-page {
   display: grid;
   gap: 1rem;
+  color: var(--text-color);
 }
 
 .workflow-header {
-  border: 1px solid #bae6fd;
-  border-radius: 1rem;
-  background: linear-gradient(to bottom right, #e0f2fe, #fff);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius, 1rem);
+  background: linear-gradient(
+    to bottom right,
+    color-mix(in srgb, var(--primary-color) 10%, var(--surface-card)),
+    var(--surface-card)
+  );
   padding: 1.25rem;
-  box-shadow: 0 1px 3px rgba(14, 116, 144, 0.08);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--text-color) 8%, transparent);
 }
 
 .workflow-eyebrow {
-  color: #38bdf8;
+  color: var(--primary-color);
   font-size: 0.75rem;
   font-weight: 900;
   letter-spacing: 0.05em;
@@ -21,23 +26,51 @@
 
 .workflow-title {
   margin: 0.25rem 0 0;
-  color: #0c4a6e;
+  color: var(--text-color);
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
 }
 
 .workflow-subtitle {
   margin: 0.35rem 0 0;
-  color: #64748b;
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .workflow-card {
-  border: 1px solid #bae6fd;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(14, 116, 144, 0.08);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius, 1rem);
+  background: var(--surface-card);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--text-color) 6%, transparent);
+}
+
+.workflow-tracker-shell {
+  margin-bottom: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius, 1rem);
+  background: var(--surface-card);
+  padding: 0.75rem;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--text-color) 6%, transparent);
+}
+
+.workflow-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius, 1rem);
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-card));
+  padding: 1rem;
+  color: var(--text-color);
+}
+
+@media (min-width: 768px) {
+  .workflow-nav {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 
 .workflow-actions {
@@ -45,6 +78,169 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.workflow-metric-label {
+  color: var(--text-color-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.workflow-metric-value {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--text-color);
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.workflow-icon-primary {
+  color: var(--primary-color);
+}
+
+.workflow-list-item {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+}
+
+.workflow-list-item--warn {
+  background: color-mix(in srgb, var(--p-yellow-500, #eab308) 14%, var(--surface-card));
+}
+
+.workflow-field-label {
+  color: var(--text-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.workflow-error {
+  color: var(--p-red-500, #ef4444);
+  font-size: 0.8125rem;
+}
+
+.workflow-upload-zone {
+  border: 1px dashed color-mix(in srgb, var(--primary-color) 35%, var(--surface-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--surface-ground));
+  padding: 1rem;
+}
+
+.workflow-status-box {
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
+}
+
+.workflow-status-box--success {
+  border-color: color-mix(in srgb, var(--p-green-500, #22c55e) 35%, var(--surface-border));
+  background: color-mix(in srgb, var(--p-green-500, #22c55e) 12%, var(--surface-card));
+}
+
+.workflow-status-box--success h2 {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.workflow-status-box--danger {
+  border-color: color-mix(in srgb, var(--p-red-500, #ef4444) 35%, var(--surface-border));
+  background: color-mix(in srgb, var(--p-red-500, #ef4444) 12%, var(--surface-card));
+}
+
+.workflow-status-box--danger h2 {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.workflow-status-box--warn {
+  border-color: color-mix(in srgb, var(--p-yellow-500, #eab308) 40%, var(--surface-border));
+  background: color-mix(in srgb, var(--p-yellow-500, #eab308) 14%, var(--surface-card));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-yellow-500, #eab308) 20%, transparent);
+}
+
+.workflow-status-box--warn h2 {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.workflow-finding-item {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-color);
+}
+
+.workflow-check-icon--ok {
+  color: var(--p-green-500, #22c55e);
+}
+
+.workflow-check-icon--fail {
+  color: var(--p-red-500, #ef4444);
+}
+
+.workflow-spinner-icon {
+  color: var(--primary-color);
+}
+
+.workflow-text-muted {
+  color: var(--text-color-secondary);
+}
+
+.workflow-text-accent {
+  color: var(--primary-color);
+}
+
+.workflow-channel-card {
+  border: 1px solid var(--surface-border);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface-card));
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.workflow-choice-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.75rem;
+  background: var(--surface-card);
+  padding: 0.75rem;
+}
+
+.workflow-choice-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.workflow-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.workflow-check-detail {
+  font-size: 0.875rem;
+  color: var(--p-red-500, #ef4444);
+}
+
+.workflow-event-title {
+  margin-top: 0.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.workflow-card-title {
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 @media (max-width: 768px) {

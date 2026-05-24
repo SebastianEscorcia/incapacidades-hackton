@@ -1,15 +1,15 @@
 <div class="tracker-wrap">
   <div class="tracker" role="list" aria-label="Estado del trámite">
     @for (step of steps; track step.stage; let i = $index; let last = $last) {
-      <div class="tracker-item" role="listitem" [class]="stepState(i)">
-        <div class="tracker-marker" [attr.aria-current]="stepState(i) === 'active' ? 'step' : null">
-          <i [class]="markerIcon(i, step.icon)"></i>
-        </div>
-        <span class="tracker-label">{{ 'workflow.steps.' + step.stage | translate }}</span>
-        @if (!last) {
-          <div class="tracker-line" [class.done]="stepState(i) === 'done'"></div>
-        }
+    <div class="tracker-item" role="listitem" [class]="stepState(i)">
+      <div class="tracker-marker" [attr.aria-current]="stepState(i) === 'active' ? 'step' : null">
+        <i [class]="markerIcon(i, step.icon)"></i>
       </div>
+      <span class="tracker-label">{{ 'workflow.steps.' + step.stage | translate }}</span>
+      @if (!last) {
+      <div class="tracker-line" [class.done]="stepState(i) === 'done'"></div>
+      }
+    </div>
     }
   </div>
 </div>

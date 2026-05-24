@@ -12,10 +12,10 @@
       @for (metric of data.metrics; track metric.label) {
         <article class="workflow-card p-4">
           <div class="flex items-center justify-between">
-            <span class="text-sm font-semibold text-slate-600">{{ metric.label | translateContent }}</span>
-            <i [class]="metric.icon + ' text-sky-500'"></i>
+            <span class="workflow-metric-label">{{ metric.label | translateContent }}</span>
+            <i [class]="metric.icon + ' workflow-icon-primary'"></i>
           </div>
-          <strong class="mt-2 block text-3xl text-sky-950">{{ metric.value }}</strong>
+          <strong class="workflow-metric-value">{{ metric.value }}</strong>
         </article>
       }
     </div>
@@ -24,7 +24,7 @@
       <p-card [header]="'empresa.dashboard.requirements' | translate" styleClass="workflow-card">
         <ul class="grid gap-2">
           @for (item of data.recentRequirements; track item.id) {
-            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+            <li class="workflow-list-item flex items-center justify-between">
               <span>{{ item.title | translateContent }}</span>
               <p-tag [value]="item.status | translateContent" severity="info" />
             </li>
@@ -34,7 +34,7 @@
       <p-card [header]="'empresa.dashboard.glosas' | translate" styleClass="workflow-card">
         <ul class="grid gap-2">
           @for (item of data.recentGlosas; track item.id) {
-            <li class="rounded-lg bg-amber-50 px-3 py-2 text-sm">
+            <li class="workflow-list-item workflow-list-item--warn">
               <strong>{{ item.code }}</strong> — {{ item.detail | translateContent }}
             </li>
           }
@@ -43,7 +43,7 @@
       <p-card [header]="'empresa.dashboard.finalResults' | translate" styleClass="workflow-card">
         <ul class="grid gap-2">
           @for (item of data.finalResults; track item.id) {
-            <li class="flex items-center justify-between rounded-lg bg-sky-50 px-3 py-2 text-sm">
+            <li class="workflow-list-item flex items-center justify-between">
               <span>{{ item.date }}</span>
               <p-tag [value]="item.status" />
             </li>

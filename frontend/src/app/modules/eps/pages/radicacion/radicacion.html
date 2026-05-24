@@ -7,8 +7,8 @@
   </header>
   <div class="grid gap-4 lg:grid-cols-5">
     @for (channel of channels; track channel.label) {
-      <article class="rounded-xl border border-sky-200 bg-sky-50 p-3 text-center text-sm font-semibold text-sky-900">
-        <i [class]="channel.icon + ' mb-2 block text-xl text-sky-500'"></i>{{ channel.label | translate }}
+      <article class="workflow-channel-card">
+        <i [class]="channel.icon + ' mb-2 block text-xl workflow-icon-primary'"></i>{{ channel.label | translate }}
       </article>
     }
   </div>

@@ -32,6 +32,7 @@ export enum AiResultStatus {
   Approved = 'approved',
   Rejected = 'rejected',
   ManualReview = 'manual_review',
+  Pending = 'pending',
 }
 
 export enum EpsResponseStatus {

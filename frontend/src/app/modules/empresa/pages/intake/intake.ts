@@ -8,6 +8,7 @@ import { IntakeFileResponse, IntakeValidationStatus, WorkflowStage } from '@shar
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
 import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { AiIncapacidadService } from '@sharedWorkflow/services/ai-incapacidad.service';
 import { FormIntakeUpload } from './form-intake-upload';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 
@@ -19,6 +20,7 @@ import { TranslatePipe } from '@/core/i18n/translate.pipe';
   styleUrl: './intake.scss',
 })
 export class IntakePage implements OnInit {
+  private readonly ai = inject(AiIncapacidadService);
   private readonly flow = inject(WorkflowFlowMockService);
   private readonly workflow = inject(WorkflowService);
   private readonly confirmation = inject(ConfirmationService);
@@ -47,7 +49,7 @@ export class IntakePage implements OnInit {
       this.form.companyId.setValue(activeCase.companyId);
     }
 
-    this.form.companyId.valueChanges.subscribe((val) => {
+    this.form.companyId.valueChanges.subscribe((val: string | null) => {
       if (val) {
         const found = this.companies.find((c) => c.value === val);
         if (found) {
@@ -74,7 +76,16 @@ export class IntakePage implements OnInit {
   }
 
   onFilesSelected(event: { currentFiles: File[] }): void {
-    this.form.setFiles(event.currentFiles);
+    const validFiles: File[] = [];
+    for (const file of event.currentFiles) {
+      const error = this.ai.validateFile(file);
+      if (error) {
+        this.messages.add({ severity: 'warn', summary: `${file.name}: ${error}` });
+        continue;
+      }
+      validFiles.push(file);
+    }
+    this.form.setFiles(validFiles);
   }
 
   onFileRemoved(event: unknown): void {
@@ -116,7 +127,10 @@ export class IntakePage implements OnInit {
             this.messages.add({ severity: 'success', summary: 'Carga registrada' });
             this.flow.navigateNext(this.stage);
           } catch (err) {
-            this.messages.add({ severity: 'error', summary: 'Error al subir archivos' });
+            const summary = this.workflow.isAiApiError(err)
+              ? err.message
+              : 'Error al subir archivos';
+            this.messages.add({ severity: 'error', summary });
           } finally {
             this.loading.set(false);
           }

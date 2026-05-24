@@ -16,6 +16,8 @@ export interface MockCaseSummary {
   companyId?: string;
   status: WorkflowStage;
   updatedAt: string;
+  incapacidadIds?: string[];
+  primaryIncapacidadId?: string;
 }
 
 @Injectable({ providedIn: 'root' })

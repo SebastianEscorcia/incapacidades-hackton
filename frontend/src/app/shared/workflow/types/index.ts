@@ -7,3 +7,4 @@ export * from './payloads/expediente.payload';
 export * from './payloads/radicacion.payload';
 export * from './payloads/eps-response.payload';
 export * from './responses/intake.response';
+export * from './ai.types';

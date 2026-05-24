@@ -27,9 +27,9 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 999px;
-  border: 2px solid #cbd5e1;
-  background: #fff;
-  color: #94a3b8;
+  border: 2px solid var(--surface-border);
+  background: var(--surface-card);
+  color: var(--text-color-secondary);
   font-size: 0.85rem;
   transition: all 0.2s ease;
 }
@@ -37,7 +37,7 @@
 .tracker-label {
   max-width: 5rem;
   text-align: center;
-  color: #64748b;
+  color: var(--text-color-secondary);
   font-size: 0.65rem;
   font-weight: 600;
   line-height: 1.2;
@@ -49,39 +49,39 @@
   left: calc(50% + 1.125rem);
   width: calc(100% - 2.25rem);
   height: 2px;
-  background: #e2e8f0;
+  background: var(--surface-border);
 }
 
 .tracker-line.done {
-  background: #38bdf8;
+  background: var(--primary-color);
 }
 
 .tracker-item.done .tracker-marker {
-  border-color: #38bdf8;
-  background: #e0f2fe;
-  color: #0284c7;
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 15%, var(--surface-card));
+  color: var(--primary-color);
 }
 
 .tracker-item.done .tracker-label {
-  color: #0369a1;
+  color: var(--text-color);
 }
 
 .tracker-item.active .tracker-marker {
-  border-color: #7c3aed;
-  background: #7c3aed;
-  color: #fff;
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.2);
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: var(--primary-color-text);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
 .tracker-item.active .tracker-label {
-  color: #5b21b6;
+  color: var(--primary-color);
   font-weight: 700;
 }
 
 .tracker-item.pending .tracker-marker {
-  border-color: #e2e8f0;
-  background: #f8fafc;
-  color: #cbd5e1;
+  border-color: var(--surface-border);
+  background: var(--surface-ground);
+  color: color-mix(in srgb, var(--text-color-secondary) 70%, transparent);
 }
 
 @media (min-width: 768px) {

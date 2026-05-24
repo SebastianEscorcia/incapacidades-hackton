@@ -15,27 +15,27 @@
       <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
         <div class="grid gap-4 md:grid-cols-2">
           <div class="flex flex-col gap-1">
-            <label for="companyId" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.company' | translate }}</label>
+            <label for="companyId" class="workflow-field-label">{{ 'empresa.intake.company' | translate }}</label>
             <p-select id="companyId" formControlName="companyId" [options]="companies" optionLabel="label" optionValue="value" [placeholder]="'empresa.intake.selectCompany' | translate" styleClass="w-full" />
             @if (form.companyId.invalid && form.companyId.touched) {
-              <small class="text-red-500">{{ 'empresa.intake.required' | translate }}</small>
+              <small class="workflow-error">{{ 'empresa.intake.required' | translate }}</small>
             }
           </div>
           <div class="flex flex-col gap-1">
-            <label for="batchName" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.batchName' | translate }}</label>
+            <label for="batchName" class="workflow-field-label">{{ 'empresa.intake.batchName' | translate }}</label>
             <input id="batchName" pInputText formControlName="batchName" class="w-full" />
             @if (form.batchName.invalid && form.batchName.touched) {
-              <small class="text-red-500">{{ 'empresa.intake.required' | translate }}</small>
+              <small class="workflow-error">{{ 'empresa.intake.required' | translate }}</small>
             }
           </div>
         </div>
 
         <div class="flex flex-col gap-1">
-          <label for="notes" class="text-sm font-semibold text-sky-900">{{ 'empresa.intake.notes' | translate }}</label>
+          <label for="notes" class="workflow-field-label">{{ 'empresa.intake.notes' | translate }}</label>
           <textarea id="notes" pTextarea formControlName="notes" rows="3" class="w-full"></textarea>
         </div>
 
-        <div class="rounded-xl border border-dashed border-sky-300 bg-sky-50/50 p-4">
+        <div class="workflow-upload-zone">
           <p-fileUpload
             mode="advanced"
             [multiple]="true"
@@ -46,7 +46,7 @@
             (onRemove)="onFileRemoved($event)"
           />
           @if (!form.hasFiles() && submitted) {
-            <small class="text-red-500">{{ 'empresa.intake.atLeastOneFile' | translate }}</small>
+            <small class="workflow-error">{{ 'empresa.intake.atLeastOneFile' | translate }}</small>
           }
         </div>
 
@@ -76,7 +76,7 @@
               <td>
                 <p-tag [value]="file.validationStatus" [severity]="severity(file.validationStatus)" />
                 @if (file.validationMessage) {
-                  <small class="block text-red-500">{{ file.validationMessage }}</small>
+                  <small class="block workflow-error">{{ file.validationMessage }}</small>
                 }
               </td>
             </tr>
