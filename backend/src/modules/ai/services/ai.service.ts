@@ -5,6 +5,8 @@ import { EncryptionService, IEncryptedData } from '../../encryption/service/encr
 import { AiGateway } from '../gateway/ai.gateway'; // Importamos el Gateway
 import { AiRepository } from '../repository/ai.repository';
 import { IDatosExtraidos } from '../type/ai.type';
+import rethusValidator from '../scrapping/rethus.validator';
+import adresValidator from '../scrapping/adres.validator';
 
 @Injectable()
 export class AiService {
@@ -59,7 +61,13 @@ export class AiService {
     private readonly aiGateway: AiGateway,       // 1. Inyectamos WebSockets
     private readonly aiRepository: AiRepository, // 2. Inyectamos Base de Datos
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY') || 'AIzaSyBjLkH_MK6zFiJESPnG6OL39JswSQTGkR0';
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    if (!apiKey) {
+      this.logger.error(
+        'Falta la variable GEMINI_API_KEY. Configura una API key valida en el archivo .env.',
+      );
+      throw new Error('GEMINI_API_KEY no configurada.');
+    }
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
@@ -87,9 +95,15 @@ export class AiService {
       return JSON.parse(result.response.text());
     } catch (error) {
       this.logger.error('Error procesando el documento con Gemini', error);
+      let motivoError = 'Fallo interno en el procesamiento de IA o documento ilegible.';
+      if (error instanceof Error) {
+        motivoError = error.message.includes('403')
+          ? 'La validacion IA fallo por API key invalida/revocada (Gemini 403).'
+          : `Fallo en IA: ${error.message}`;
+      }
       return {
         estado: 'REVISIÓN MANUAL',
-        motivo_rechazo: 'Fallo interno en el procesamiento de IA o documento ilegible.',
+        motivo_rechazo: motivoError,
         anomalias_detectadas: [],
         datos_extraidos: null
       };
@@ -140,12 +154,18 @@ export class AiService {
     // 4. Guardamos en la base de datos
     const idGenerado = await this.aiRepository.guardar(registroIncapacidad);
 
+    const scrapingResultados = await this.ejecutarValidacionesExternas(
+      idGenerado,
+      resultadoIA.datos_extraidos,
+    );
+
     return {
       id: idGenerado,
       mensaje: 'Procesamiento completado con éxito',
       estado: resultadoIA.estado,
       requiere_accion_manual: resultadoIA.estado === 'REVISIÓN MANUAL',
-      alertas: resultadoIA.anomalias_detectadas
+      alertas: resultadoIA.anomalias_detectadas,
+      scraping: scrapingResultados,
     };
   }
   /**
@@ -231,5 +251,101 @@ export class AiService {
 
       return cumpleDocumento && cumpleNombre;
     });
+  }
+
+  /**
+   * Ejecuta la validación documental en RETHUS y ADRES en paralelo
+   * y emite un evento WebSocket cuando ambos finalizan.
+   */
+  private async ejecutarValidacionesExternas(
+    incapacidadId: string,
+    datosExtraidos: IDatosExtraidos | null,
+  ): Promise<{ rethus: unknown; adres: unknown } | null> {
+    if (!datosExtraidos) {
+      return null;
+    }
+
+    const medicoDocumento = `${datosExtraidos.medico_registro_documento || ''}`.trim();
+    const pacienteDocumento = `${datosExtraidos.paciente_documento || ''}`.trim();
+    const eps = `${datosExtraidos.eps || ''}`.trim();
+
+    const rethusPromise = medicoDocumento
+      ? rethusValidator(medicoDocumento).catch((error: unknown) => ({
+          status: false,
+          payload: {
+            estado: false,
+            mensaje: 'No se pudo validar al medico en RETHUS.',
+            razon:
+              error instanceof Error
+                ? error.message
+                : 'Error desconocido ejecutando scraper RETHUS.',
+            documento: medicoDocumento,
+            fuente: 'RETHUS',
+            scrapingExitoso: false,
+            fecha: new Date().toISOString(),
+            data: null,
+          },
+        }))
+      : Promise.resolve({
+          status: false,
+          payload: {
+            estado: false,
+            mensaje: 'No se ejecuta RETHUS: falta medico_registro_documento.',
+            razon:
+              'La IA no devolvio medico_registro_documento para lanzar el scraping.',
+            documento: medicoDocumento,
+            fuente: 'RETHUS',
+            scrapingExitoso: false,
+            fecha: new Date().toISOString(),
+            data: null,
+          },
+        });
+
+    const adresPromise = pacienteDocumento
+      ? adresValidator(pacienteDocumento, eps || null).catch((error: unknown) => ({
+          status: false,
+          payload: {
+            estado: false,
+            mensaje: 'No se pudo validar la EPS del paciente.',
+            razon:
+              error instanceof Error
+                ? error.message
+                : 'Error desconocido ejecutando scraper ADRES.',
+            documento: pacienteDocumento,
+            epsValidada: eps || null,
+            fuente: 'ADRES',
+            scrapingExitoso: false,
+            fecha: new Date().toISOString(),
+            data: null,
+          },
+        }))
+      : Promise.resolve({
+          status: false,
+          payload: {
+            estado: false,
+            mensaje: 'No se ejecuta ADRES: falta paciente_documento.',
+            razon: 'La IA no devolvio paciente_documento para lanzar el scraping.',
+            documento: pacienteDocumento,
+            epsValidada: eps || null,
+            fuente: 'ADRES',
+            scrapingExitoso: false,
+            fecha: new Date().toISOString(),
+            data: null,
+          },
+        });
+
+    const [rethus, adres] = await Promise.all([rethusPromise, adresPromise]);
+
+    this.aiGateway.emitirResultadoScraping({
+      incapacidadId,
+      medico_registro_documento: medicoDocumento,
+      paciente_documento: pacienteDocumento,
+      eps,
+      rethus,
+      adres,
+      finalizadoEn: new Date().toISOString(),
+    });
+
+    return { rethus, adres };
   }
 }

@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.23",
     "@nestjs/websockets": "^11.1.23",
+    "playwright": "^1.60.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3"
@@ -43,6 +44,7 @@
     "@types/node": "^24.0.0",
     "@types/socket.io": "^3.0.1",
     "@types/supertest": "^7.0.0",
+    "chokidar": "^4.0.3",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

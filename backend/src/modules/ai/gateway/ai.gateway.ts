@@ -39,6 +39,25 @@ import {
       // Emite el evento a todos los clientes en la sala_auditores
       this.server.to('sala_auditores').emit('alerta_fraude', payload);
     }
+
+  /**
+   * Emite al frontend el consolidado de validaciones externas
+   * una vez finalizan RETHUS y ADRES.
+   */
+  emitirResultadoScraping(payload: {
+    incapacidadId: string;
+    medico_registro_documento: string;
+    paciente_documento: string;
+    eps: string;
+    rethus: unknown;
+    adres: unknown;
+    finalizadoEn: string;
+  }) {
+    this.logger.log('Emitiendo resultado consolidado de scrapers por WebSocket...');
+    this.server
+      .to('sala_auditores')
+      .emit('validacion_documental_completada', payload);
+  }
   
     /**
      * Ejemplo de cómo escuchar eventos desde el frontend (si lo necesitas luego)

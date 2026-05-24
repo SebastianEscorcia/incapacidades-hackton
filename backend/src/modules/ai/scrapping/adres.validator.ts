@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const OUTPUT_PATH = path.join(__dirname, 'eps_data_result.json');
-const TARGET_URL  = 'https://www.adres.gov.co/consulte-su-eps';
+const TARGET_URL = 'https://www.adres.gov.co/consulte-su-eps';
 const FORM_FRAME_URL = 'aplicaciones.adres.gov.co';
 
-function normalizeText(value = '') {
+function normalizeText(value: unknown = '') {
   return String(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -22,6 +22,14 @@ function buildResponse({
   expectedEps = null,
   scraping = true,
   data = null,
+}: {
+  status: boolean;
+  message: string;
+  reason?: string | null;
+  document: string;
+  expectedEps?: string | null;
+  scraping?: boolean;
+  data?: unknown;
 }) {
   return {
     status,
@@ -39,8 +47,10 @@ function buildResponse({
   };
 }
 
-function validateAdresResult(result, expectedEps) {
-  const affiliationRows = Array.isArray(result?.datosAfiliacion) ? result.datosAfiliacion : [];
+function validateAdresResult(result: any, expectedEps?: string | null) {
+  const affiliationRows = Array.isArray(result?.datosAfiliacion)
+    ? result.datosAfiliacion
+    : [];
   if (!affiliationRows.length) {
     return {
       status: false,
@@ -58,7 +68,7 @@ function validateAdresResult(result, expectedEps) {
   }
 
   const expectedNormalized = normalizeText(expectedEps);
-  const epsMatch = affiliationRows.some((row) =>
+  const epsMatch = affiliationRows.some((row: Record<string, unknown>) =>
     Object.entries(row || {}).some(([key, value]) => {
       const normalizedKey = normalizeText(key);
       const normalizedValue = normalizeText(value);
@@ -66,9 +76,11 @@ function validateAdresResult(result, expectedEps) {
         normalizedKey.includes('eps') ||
         normalizedKey.includes('entidad') ||
         normalizedKey.includes('asegurador');
-      return (isEpsField && normalizedValue.includes(expectedNormalized)) ||
-        normalizedValue.includes(expectedNormalized);
-    })
+      return (
+        (isEpsField && normalizedValue.includes(expectedNormalized)) ||
+        normalizedValue.includes(expectedNormalized)
+      );
+    }),
   );
 
   if (!epsMatch) {
@@ -86,34 +98,34 @@ function validateAdresResult(result, expectedEps) {
   };
 }
 
-async function getFormFrame(page) {
+async function getFormFrame(page: any) {
   for (const frame of page.frames()) {
     if (frame.url().includes(FORM_FRAME_URL)) return frame;
   }
   return null;
 }
 
-async function extractData(frameOrPage) {
+async function extractData(frameOrPage: any) {
   return frameOrPage.evaluate(() => {
     const data = {
-      informacionBasica: {},
-      datosAfiliacion:   [],
-      fechaImpresion:    '',
-      estacionOrigen:    '',
+      informacionBasica: {} as Record<string, string>,
+      datosAfiliacion: [] as Record<string, string>[],
+      fechaImpresion: '',
+      estacionOrigen: '',
     };
 
     document.querySelectorAll('table').forEach((table) => {
-      const headers = Array.from(table.querySelectorAll('th')).map(
-        th => th.innerText.trim()
+      const headers = Array.from(table.querySelectorAll('th')).map((th) =>
+        th.innerText.trim(),
       );
 
       if (headers.length > 0) {
         table.querySelectorAll('tbody tr').forEach((row) => {
-          const cells = Array.from(row.querySelectorAll('td')).map(
-            td => td.innerText.trim()
+          const cells = Array.from(row.querySelectorAll('td')).map((td) =>
+            td.innerText.trim(),
           );
           if (cells.length > 0) {
-            const entry = {};
+            const entry: Record<string, string> = {};
             headers.forEach((h, i) => (entry[h] = cells[i] ?? ''));
             data.datosAfiliacion.push(entry);
           }
@@ -140,8 +152,8 @@ async function extractData(frameOrPage) {
   });
 }
 
-async function main(docNumber, expectedEps = null) {
-  console.log('🚀 Iniciando navegador...');
+async function adresValidator(docNumber: string, expectedEps: string | null = null) {
+  console.log('Iniciando navegador...');
   let browser;
 
   try {
@@ -159,95 +171,61 @@ async function main(docNumber, expectedEps = null) {
     });
 
     const page = await context.newPage();
-
-    // ─── 1. Navegar ────────────────────────────────────────────────────────────
-    console.log(`🌐 Cargando: ${TARGET_URL}`);
     await page.goto(TARGET_URL, { waitUntil: 'networkidle', timeout: 60000 });
     await page.waitForTimeout(2000);
 
-    // ─── 2. Localizar iframe del formulario ───────────────────────────────────
     let formFrame = await getFormFrame(page);
     if (!formFrame) throw new Error('Iframe del formulario no encontrado.');
-    console.log(`✅ iframe encontrado: ${formFrame.url()}`);
 
-    // ─── 3. Llenar campo de documento ─────────────────────────────────────────
     const inputLoc = formFrame.locator('#txtNumDoc');
     await inputLoc.waitFor({ state: 'visible', timeout: 15000 });
     await inputLoc.click({ force: true });
     await inputLoc.fill('');
     await inputLoc.type(docNumber, { delay: 120 });
-    console.log(`✅ Documento escrito: ${docNumber}`);
-
-    // Pausa para que el reCAPTCHA invisible se inicialice completamente
     await page.waitForTimeout(2000);
 
-    // ─── 4. Clic en #btnConsultar ──────────────────────────────────────────────
-    // El botón está dentro del iframe, no en la página principal
     const btnLoc = formFrame.locator('#btnConsultar');
     await btnLoc.waitFor({ state: 'visible', timeout: 10000 });
-
-    console.log('🖱️  Haciendo clic en #btnConsultar...');
-
-    // Escuchar nueva pestaña ANTES del clic
-    const newPagePromise = context.waitForEvent('page', { timeout: 15000 }).catch(() => null);
-
-    // Clic que dispara setRecaptchaToken() + WebForm_DoPostBackWithOptions()
+    const newPagePromise = context
+      .waitForEvent('page', { timeout: 15000 })
+      .catch(() => null);
     await btnLoc.click({ force: true });
-    console.log('✅ Clic enviado.');
 
-    // Segundo clic 1 s después si el botón sigue visible (refuerzo)
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 1000));
     const stillVisible = await btnLoc.isVisible().catch(() => false);
     if (stillVisible) {
-      console.log('🖱️  Segundo clic (refuerzo)...');
-      await btnLoc.click({ force: true }).catch(() => {});
+      await btnLoc.click({ force: true }).catch(() => undefined);
     }
 
-    // ─── 5. Detectar reCAPTCHA visual ─────────────────────────────────────────
-    await new Promise(r => setTimeout(r, 2500));
-    const hasChallenge = page.frames().some(
-      f => f.url().includes('recaptcha') && f.url().includes('bframe')
-    );
+    await new Promise((r) => setTimeout(r, 2500));
+    const hasChallenge = page
+      .frames()
+      .some((f: any) => f.url().includes('recaptcha') && f.url().includes('bframe'));
     if (hasChallenge) {
-      throw new Error('No se pudo hacer el web scraping: se detecto un desafio visual de reCAPTCHA.');
-    } else {
-      console.log('✅ Sin desafío visual de reCAPTCHA.');
+      throw new Error(
+        'No se pudo hacer el web scraping: se detecto un desafio visual de reCAPTCHA.',
+      );
     }
 
-    // ─── 6. Esperar resultados ─────────────────────────────────────────────────
     const newPage = await newPagePromise;
     let resultContext;
 
     if (newPage) {
-      console.log(`✅ Nueva pestaña detectada: ${newPage.url()}`);
       await newPage.waitForLoadState('domcontentloaded', { timeout: 30000 });
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 2000));
       resultContext = newPage;
     } else {
-      // Postback ASP.NET: el iframe se recargó con los resultados
-      console.log('⏳ Esperando postback en el iframe (ASP.NET)...');
-      await new Promise(r => setTimeout(r, 6000));
-
-      // Volver a buscar el frame (puede tener nueva URL tras el postback)
+      await new Promise((r) => setTimeout(r, 6000));
       formFrame = await getFormFrame(page);
       if (!formFrame) {
-        // Intentar en la página principal directamente
-        console.log('ℹ️  Buscando resultados en página principal...');
         resultContext = page;
       } else {
         resultContext = formFrame;
       }
     }
 
-    // ─── 7. Extraer datos ─────────────────────────────────────────────────────
-    console.log('\n📊 Extrayendo datos...');
     const result = await extractData(resultContext);
-
-    // ─── 8. Guardar JSON ───────────────────────────────────────────────────────
     fs.writeFileSync(OUTPUT_PATH, JSON.stringify(result, null, 2), 'utf-8');
-    console.log(`\n💾 Guardado en: ${OUTPUT_PATH}`);
-    console.log('\n📋 Resultado:');
-    console.log(JSON.stringify(result, null, 2));
 
     const validation = validateAdresResult(result, expectedEps);
     return buildResponse({
@@ -259,13 +237,12 @@ async function main(docNumber, expectedEps = null) {
       scraping: true,
       data: result,
     });
-
-  } catch (err) {
-    console.error('\n❌ Error:', err.message);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return buildResponse({
       status: false,
       message: 'No se pudo validar la EPS del paciente.',
-      reason: `No se pudo hacer el web scraping en ADRES: ${err.message}`,
+      reason: `No se pudo hacer el web scraping en ADRES: ${errorMessage}`,
       document: docNumber,
       expectedEps,
       scraping: false,
@@ -274,9 +251,8 @@ async function main(docNumber, expectedEps = null) {
   } finally {
     if (browser) {
       await browser.close();
-      console.log('\n🔌 Navegador cerrado.');
     }
   }
 }
 
-module.exports = main;
+export default adresValidator;
