@@ -15,7 +15,7 @@ import { TranslatePipe } from '@/core/i18n/translate.pipe';
     imports: [CommonModule, RouterModule, RippleModule, TooltipModule, TranslatePipe],
     template: `
         <ng-container>
-            <div *ngIf="root && item.visible !== false" class="layout-menuitem-root-text">
+            <div *ngIf="root && item.items?.length && item.visible !== false" class="layout-menuitem-root-text">
                 {{ item.label | translate }}
             </div>
             <a
@@ -196,17 +196,23 @@ export class AppMenuitem implements OnInit, OnDestroy {
     }
 
     updateActiveStateFromRoute() {
-        let activeRoute = this.router.isActive(this.item.routerLink[0], {
+        const link = this.item.routerLink?.[0];
+        if (!link) return;
+
+        const options = this.item.routerLinkActiveOptions ?? {
             paths: 'exact',
             queryParams: 'ignored',
             matrixParams: 'ignored',
-            fragment: 'ignored'
-        });
+            fragment: 'ignored',
+        };
+
+        const activeRoute = this.router.isActive(link, options);
+        this.active = activeRoute;
 
         if (activeRoute) {
             this.layoutService.onMenuStateChange({
                 key: this.key,
-                routeEvent: true
+                routeEvent: true,
             });
         }
     }

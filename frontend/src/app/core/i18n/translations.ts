@@ -35,6 +35,7 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
       actions: 'Actions',
       id: 'ID',
       name: 'Name',
+      type: 'Type',
       sector: 'Sector',
       identification: 'Identification',
       select: 'Select',
@@ -49,7 +50,9 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
     },
     menu: {
       enterprisePanel: 'Enterprise Panel',
+      companiesList: 'Companies List',
       epsPanel: 'EPS/ARL Panel',
+      intake: 'Mass upload / Intake',
       history: 'History',
     },
     topbar: {
@@ -129,6 +132,7 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
       actions: 'Acciones',
       id: 'ID',
       name: 'Nombre',
+      type: 'Tipo',
       sector: 'Sector',
       identification: 'Identificación',
       select: 'Seleccionar',
@@ -143,7 +147,9 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
     },
     menu: {
       enterprisePanel: 'Panel empresa',
+      companiesList: 'Lista de empresas',
       epsPanel: 'Panel EPS/ARL',
+      intake: 'Carga masiva / Intake',
       history: 'Historial',
     },
     topbar: {

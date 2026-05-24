@@ -41,10 +41,4 @@
     <a routerLink="/auth/register">{{ 'auth.createAccount' | translate }}</a>
     <a routerLink="/public">{{ 'auth.backToStart' | translate }}</a>
   </div>
-
-  <div class="auth-mock">
-    <small class="auth-muted">{{ 'auth.mockTitle' | translate }}</small>
-    <p-button label="{{ 'auth.enterAsCompany' | translate }}" icon="pi pi-building" severity="info" styleClass="w-full" (onClick)="enterAs('empresa')" />
-    <p-button label="{{ 'auth.enterAsEps' | translate }}" icon="pi pi-briefcase" severity="help" styleClass="w-full" (onClick)="enterAs('eps')" />
-  </div>
 </auth-shell>

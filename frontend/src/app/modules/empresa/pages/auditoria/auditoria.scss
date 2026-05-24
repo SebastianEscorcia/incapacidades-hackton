@@ -1,0 +1,21 @@
+@import '../../../../shared/workflow/styles/workflow-page.scss';
+
+.auditoria-session-btn {
+  width: 100%;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.75rem;
+  background: var(--surface-card);
+  padding: 0.875rem 1rem;
+  text-align: left;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.auditoria-session-btn--active {
+  border-color: color-mix(in srgb, var(--primary-color) 45%, var(--surface-border));
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+}
+
+.auditoria-session-btn:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 30%, var(--surface-border));
+}

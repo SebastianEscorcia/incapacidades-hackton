@@ -14,6 +14,19 @@ export enum AiAlertaSeveridad {
   Baja = 'BAJA',
 }
 
+export interface ScrapingValidationEntry {
+  status: boolean;
+  payload: Record<string, unknown>;
+  error?: string;
+}
+
+export interface ScrapingResults {
+  rethus?: ScrapingValidationEntry;
+  adres?: ScrapingValidationEntry;
+  /** true cuando RETHUS y ADRES terminaron (HTTP o WebSocket). */
+  completed?: boolean;
+}
+
 export interface IncapacidadExtractedData {
   pacienteNombre: string;
   pacienteDocumento: string;
@@ -33,6 +46,7 @@ export interface IncapacidadUploadResult {
   estado: AiResultStatus;
   requiereAccionManual: boolean;
   alertas: string[];
+  scraping?: ScrapingResults;
 }
 
 export interface IncapacidadDetail {
@@ -43,6 +57,7 @@ export interface IncapacidadDetail {
   fechaProcesamiento: string;
   requiereVerificacionRethus: boolean;
   datosExtraidos?: IncapacidadExtractedData;
+  scraping?: ScrapingResults;
   confidence: number;
   findings: string[];
 }
@@ -72,8 +87,26 @@ export interface RethusVerificacion {
   existe: boolean;
 }
 
+export interface AdresVerificacion {
+  pacienteDocumento: string;
+  eps?: string;
+  estadoAfiliacion: string;
+  activo: boolean;
+  payload: Record<string, unknown>;
+}
+
 export interface AiRealtimeFraudeEvent {
   mensaje: string;
   anomalias: string[];
   timestamp: string;
+}
+
+/** Evento WS emitido cuando terminan RETHUS + ADRES en paralelo. */
+export interface AiScrapingCompletedEvent {
+  id: string;
+  incapacidadId?: string;
+  estado?: AiResultStatus;
+  scraping: ScrapingResults;
+  timestamp?: string;
+  mensaje?: string;
 }

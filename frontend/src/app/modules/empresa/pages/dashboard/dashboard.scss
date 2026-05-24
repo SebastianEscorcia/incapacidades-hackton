@@ -1,1 +1,9 @@
 @use '../../../../shared/workflow/styles/workflow-page';
+
+:host ::ng-deep .dashboard-companies-table .p-datatable-tbody > tr {
+  cursor: pointer;
+}
+
+:host ::ng-deep .dashboard-companies-table .p-datatable-tbody > tr.p-highlight {
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface-card));
+}

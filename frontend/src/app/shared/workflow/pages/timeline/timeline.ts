@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { WorkflowStage, WorkflowTimelineEvent } from '@sharedWorkflow/types';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
 
@@ -14,7 +14,7 @@ import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
   styleUrl: './timeline.scss',
 })
 export class TimelinePage implements OnInit {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
 
   protected readonly stage = WorkflowStage.Timeline;

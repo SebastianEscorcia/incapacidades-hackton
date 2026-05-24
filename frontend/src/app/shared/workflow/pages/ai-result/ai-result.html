@@ -29,6 +29,21 @@
       </ul>
     </p-card>
 
+    @if (result.scraping) {
+      <p-card header="Validaciones externas (scraping)" styleClass="workflow-card mt-4">
+        <div class="grid gap-3 md:grid-cols-2">
+          <div class="workflow-list-item">
+            <strong>RETHUS</strong>
+            <p-tag class="ml-2" [value]="result.scraping.rethus?.status ? 'Válido' : 'Revisar'" [severity]="result.scraping.rethus?.status ? 'success' : 'danger'" />
+          </div>
+          <div class="workflow-list-item">
+            <strong>ADRES</strong>
+            <p-tag class="ml-2" [value]="result.scraping.adres?.status ? 'Válido' : 'Revisar'" [severity]="result.scraping.adres?.status ? 'success' : 'danger'" />
+          </div>
+        </div>
+      </p-card>
+    }
+
     @if (result.datosExtraidos) {
       <p-card header="Datos extraídos por IA" styleClass="workflow-card mt-4">
         <dl class="grid gap-2 text-sm md:grid-cols-2">
@@ -44,11 +59,12 @@
         </dl>
       </p-card>
     }
-    @if (result.status === manual || result.status === rejected) {
-      <div class="mt-4 flex gap-3">
+    <div class="mt-4 flex gap-3">
+      <p-button [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+      @if (result.status === manual || result.status === rejected) {
         <a routerLink="/eps/manual-review" pButton [label]="'workflow.aiResult.applyManual' | translate" icon="pi pi-user-edit" severity="warn"></a>
         <p-button [label]="'workflow.aiResult.retry' | translate" icon="pi pi-refresh" severity="secondary" (onClick)="retryFlow()" />
-      </div>
-    }
+      }
+    </div>
   }
 </section>

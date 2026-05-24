@@ -6,6 +6,52 @@
     <h1 class="workflow-title">{{ 'workflow.aiValidation.title' | translate }}</h1>
     <p class="workflow-subtitle">{{ 'workflow.aiValidation.subtitle' | translate }}</p>
   </header>
+
+  @if (processingFailed()) {
+    <div class="workflow-failure-banner">
+      <i class="pi pi-times-circle"></i>
+      <div>
+        <strong>{{ 'workflow.aiValidation.processingFailedTitle' | translate }}</strong>
+        <p class="mt-1 text-sm">{{ motivo() ?? ('workflow.aiValidation.processingFailedDefault' | translate) }}</p>
+      </div>
+    </div>
+  } @else if (processingPending()) {
+    <div class="workflow-scraping-banner">
+      <i class="pi pi-spin pi-spinner workflow-spinner-icon"></i>
+      <span>{{ 'workflow.aiValidation.processingPending' | translate }}</span>
+    </div>
+  } @else if (scrapingPending()) {
+    <div class="workflow-scraping-banner">
+      <i class="pi pi-spin pi-spinner workflow-spinner-icon"></i>
+      <span>{{ 'workflow.aiValidation.scrapingPending' | translate }}</span>
+    </div>
+  }
+
+  @if (scraping(); as scrapingData) {
+    <div class="grid gap-4 md:grid-cols-2">
+      <article class="workflow-card p-4">
+        <div class="mb-2 flex items-center justify-between">
+          <h2 class="workflow-card-title">RETHUS</h2>
+          <p-tag
+            [value]="scrapingData.rethus ? (scrapingData.rethus.status ? 'OK' : 'Fallo') : 'Pendiente'"
+            [severity]="scrapingSeverity(scrapingData.rethus?.status)"
+          />
+        </div>
+        <p class="text-sm workflow-text-muted">Validación del registro médico extraído del documento.</p>
+      </article>
+      <article class="workflow-card p-4">
+        <div class="mb-2 flex items-center justify-between">
+          <h2 class="workflow-card-title">ADRES</h2>
+          <p-tag
+            [value]="scrapingData.adres ? (scrapingData.adres.status ? 'OK' : 'Fallo') : 'Pendiente'"
+            [severity]="scrapingSeverity(scrapingData.adres?.status)"
+          />
+        </div>
+        <p class="text-sm workflow-text-muted">Validación de afiliación EPS del paciente.</p>
+      </article>
+    </div>
+  }
+
   @if (loading()) { <p-skeleton height="16rem" /> } @else {
     <div class="grid gap-4 lg:grid-cols-2">
       @for (metric of metrics; track metric.id) {
@@ -19,6 +65,13 @@
         </article>
       }
     </div>
-    <div class="workflow-actions"><p-button [label]="'workflow.aiValidation.generate' | translate" icon="pi pi-sparkles" (onClick)="confirmStage()" /></div>
+    <div class="workflow-actions flex flex-wrap gap-3">
+      <p-button [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+      @if (processingFailed()) {
+        <a routerLink="/empresa/intake" pButton [label]="'workflow.aiValidation.retryUpload' | translate" icon="pi pi-upload" severity="warn"></a>
+      } @else {
+        <p-button [label]="'workflow.aiValidation.generate' | translate" icon="pi pi-sparkles" (onClick)="confirmStage()" />
+      }
+    </div>
   }
 </section>

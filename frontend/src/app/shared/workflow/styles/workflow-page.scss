@@ -243,6 +243,42 @@
   color: var(--text-color);
 }
 
+.workflow-scraping-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, var(--surface-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  padding: 0.875rem 1rem;
+  color: var(--text-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.workflow-failure-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--p-red-500, #ef4444) 35%, var(--surface-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--p-red-500, #ef4444) 10%, var(--surface-card));
+  padding: 0.875rem 1rem;
+  color: var(--text-color);
+  font-size: 0.875rem;
+
+  .pi-times-circle {
+    color: var(--p-red-500, #ef4444);
+    font-size: 1.25rem;
+    margin-top: 0.125rem;
+  }
+}
+
+.workflow-check-icon--fail {
+  color: var(--p-red-500, #ef4444);
+  font-size: 1.25rem;
+}
+
 @media (max-width: 768px) {
   .workflow-actions {
     justify-content: stretch;

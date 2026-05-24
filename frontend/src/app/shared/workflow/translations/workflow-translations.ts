@@ -16,6 +16,8 @@ export const WORKFLOW_TRANSLATIONS: Partial<Record<AppLanguage, TranslationDicti
         confirmHeader: 'Confirm Stage',
         success: 'Stage confirmed successfully',
         error: 'Error confirming stage',
+        processingFailedTitle: 'Document processing failed',
+        processingFailedDefault: 'The AI could not extract data from the document.',
       },
       aiValidation: {
         eyebrow: 'AI Document Validation',
@@ -27,6 +29,12 @@ export const WORKFLOW_TRANSLATIONS: Partial<Record<AppLanguage, TranslationDicti
         confirmHeader: 'Confirm AI',
         success: 'AI Result ready',
         error: 'Error confirming AI',
+        processingFailedTitle: 'AI processing failed',
+        processingFailedDefault: 'No metrics are available because the document could not be processed.',
+        processingFailedAction: 'Cannot continue: the document was not processed successfully.',
+        processingPending: 'The document is still being processed…',
+        scrapingPending: 'Validating physician in RETHUS and EPS affiliation in ADRES…',
+        retryUpload: 'Upload again',
       },
       aiResult: {
         eyebrow: 'AI Result',
@@ -101,6 +109,8 @@ export const WORKFLOW_TRANSLATIONS: Partial<Record<AppLanguage, TranslationDicti
         confirmHeader: 'Confirmar etapa',
         success: 'Etapa confirmada',
         error: 'Error al confirmar etapa',
+        processingFailedTitle: 'Fallo en el procesamiento del documento',
+        processingFailedDefault: 'La IA no pudo extraer datos del documento.',
       },
       aiValidation: {
         eyebrow: 'Validación IA documental',
@@ -112,6 +122,12 @@ export const WORKFLOW_TRANSLATIONS: Partial<Record<AppLanguage, TranslationDicti
         confirmHeader: 'Confirmar IA',
         success: 'Resultado IA listo',
         error: 'Error al confirmar IA',
+        processingFailedTitle: 'El procesamiento IA falló',
+        processingFailedDefault: 'No hay métricas porque el documento no pudo procesarse.',
+        processingFailedAction: 'No se puede continuar: el documento no se procesó correctamente.',
+        processingPending: 'El documento aún se está procesando…',
+        scrapingPending: 'Validando médico en RETHUS y afiliación en ADRES…',
+        retryUpload: 'Volver a cargar',
       },
       aiResult: {
         eyebrow: 'Resultado IA',

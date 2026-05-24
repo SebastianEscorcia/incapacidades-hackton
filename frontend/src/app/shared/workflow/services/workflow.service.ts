@@ -1,16 +1,18 @@
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, Observable, of } from 'rxjs';
 import { AiIncapacidadAdapter } from '../adapters/ai-incapacidad.adapter';
 import { EpsResponseAdapter } from '../adapters/eps-response.adapter';
 import { IntakeAdapter } from '../adapters/intake.adapter';
 import { ProcessingAdapter } from '../adapters/processing.adapter';
 import { WorkflowAdapter } from '../adapters/workflow.adapter';
-import { WorkflowFlowMockService } from '../mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from './workflow-flow.service';
 import { AiIncapacidadService, AiApiError } from './ai-incapacidad.service';
+import { AiScrapingStateService } from './ai-scraping-state.service';
+import { AiRealtimeService } from './ai-realtime.service';
 import {
   AiResultStatus,
   AiResultSummary,
   AiValidationMetric,
+  AiValidationContext,
   DashboardSummary,
   DocumentFileType,
   EpsResponsePayload,
@@ -26,15 +28,17 @@ import {
   PreprocessingTask,
   RadicacionPayload,
   RequirementPayload,
+  ScrapingResults,
   ValidationCheck,
   WorkflowStage,
-  WorkflowTimelineEvent,
 } from '../types';
 
 @Injectable({ providedIn: 'root' })
 export class WorkflowService {
   private readonly ai = inject(AiIncapacidadService);
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
+  private readonly scrapingState = inject(AiScrapingStateService);
+  private readonly realtime = inject(AiRealtimeService);
 
   async uploadIntake(model: IntakeUploadPayload, files: File[]): Promise<IntakeFileResponse[]> {
     void IntakeAdapter.toJsonPayload(model);
@@ -45,235 +49,182 @@ export class WorkflowService {
 
     for (const file of files) {
       const result = await this.ai.uploadDocumento(file);
+      this.scrapingState.setFromUpload(result.id, result.scraping);
       uploaded.push(AiIncapacidadAdapter.uploadToIntakeFile(result, file));
       incapacidadIds.push(result.id);
     }
 
+    this.realtime.connect();
+
+    const primaryId = incapacidadIds[0];
     this.flow.activeCase.update((current) => ({
       ...current,
+      id: primaryId,
       incapacidadIds,
-      primaryIncapacidadId: incapacidadIds[0],
+      primaryIncapacidadId: primaryId,
+      scraping: this.scrapingState.get(primaryId),
+      scrapingPending: this.scrapingState.isPending(primaryId),
       updatedAt: new Date().toISOString(),
     }));
+
+    this.flow.addHistoryEvent(
+      WorkflowStage.Intake,
+      'Documento procesado',
+      `${files.length} archivo(s) enviados a IA.`,
+      'Sistema',
+    );
 
     return uploaded;
   }
 
   async getIntakeValidations(): Promise<IntakeFileResponse[]> {
-    const primaryId = this.flow.activeCase().primaryIncapacidadId;
-    if (!primaryId) {
-      return firstValueFrom(of(this.mockIntakeFiles()));
-    }
-
-    try {
-      const detail = await this.ai.getIncapacidad(primaryId);
-      return [
-        {
-          id: detail.id,
-          name: `incapacidad-${detail.id.slice(0, 8)}`,
-          type: DocumentFileType.Pdf,
-          sizeBytes: 0,
-          validationStatus: this.mapAiStatusToValidation(detail.estado),
-          validationMessage: detail.findings[0],
-        },
-      ];
-    } catch {
-      return firstValueFrom(of(this.mockIntakeFiles()));
-    }
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+    const failed = AiIncapacidadAdapter.isProcessingFailed(detail);
+    return [
+      {
+        id: detail.id,
+        name: `incapacidad-${detail.id.slice(0, 8)}`,
+        type: DocumentFileType.Pdf,
+        sizeBytes: 0,
+        validationStatus: failed
+          ? IntakeValidationStatus.Invalid
+          : this.mapAiStatusToValidation(detail.estado),
+        validationMessage: detail.motivo ?? detail.findings[0],
+      },
+    ];
   }
 
   async getPreprocessingTasks(): Promise<PreprocessingTask[]> {
-    const primaryId = this.flow.activeCase().primaryIncapacidadId;
-    if (primaryId) {
-      try {
-        const detail = await this.ai.getIncapacidad(primaryId);
-        const processed = detail.estado !== AiResultStatus.Pending;
-        return [
-          { id: '1', label: 'OCR', completed: processed, detail: processed ? 'Texto extraído' : 'En procesamiento' },
-          { id: '2', label: 'Extracción IA', completed: processed, detail: detail.datosExtraidos ? 'Datos clínicos detectados' : undefined },
-          { id: '3', label: 'Validación documental', completed: processed },
-          { id: '4', label: 'Motor antifraude', completed: processed, detail: detail.findings[0] },
-          { id: '5', label: 'Normalización', completed: processed },
-          { id: '6', label: 'Indexación', completed: processed },
-        ];
-      } catch {
-        // fallback mock
-      }
-    }
-
-    return firstValueFrom(
-      of([
-        { id: '1', label: 'OCR', completed: true, detail: 'Texto extraído' },
-        { id: '2', label: 'Extracción de texto', completed: true },
-        { id: '3', label: 'Clasificación documental', completed: true },
-        { id: '4', label: 'Detección de páginas', completed: false, detail: 'En progreso' },
-        { id: '5', label: 'Normalización', completed: false },
-        { id: '6', label: 'Indexación', completed: false },
-      ]),
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+    const scraping = this.resolveScraping(primaryId, detail.scraping);
+    return AiIncapacidadAdapter.toPreprocessingTasks(
+      detail,
+      scraping,
+      this.scrapingState.isPending(primaryId),
     );
+  }
+
+  async getAiValidationContext(): Promise<AiValidationContext> {
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+    const scraping = this.resolveScraping(primaryId, detail.scraping);
+    const enriched = { ...detail, scraping };
+
+    return {
+      metrics: AiIncapacidadAdapter.toMetrics(enriched, scraping),
+      processingFailed: AiIncapacidadAdapter.isProcessingFailed(enriched),
+      processingPending: detail.estado === AiResultStatus.Pending,
+      motivo: detail.motivo,
+      estado: detail.estado,
+      scrapingPending: this.scrapingState.isPending(primaryId),
+    };
   }
 
   async getAiValidationMetrics(): Promise<AiValidationMetric[]> {
-    const primaryId = this.flow.activeCase().primaryIncapacidadId;
-    if (primaryId) {
-      try {
-        const detail = await this.ai.getIncapacidad(primaryId);
-        return AiIncapacidadAdapter.toMetrics(detail);
-      } catch {
-        // fallback mock
-      }
-    }
-
-    return firstValueFrom(
-      of([
-        { id: '1', label: 'Calidad imagen', score: 92, status: IntakeValidationStatus.Valid },
-        { id: '2', label: 'Legibilidad', score: 88, status: IntakeValidationStatus.Valid },
-        { id: '3', label: 'Consistencia', score: 74, status: IntakeValidationStatus.Warning, detail: 'Revisar fechas' },
-        { id: '4', label: 'Posible alteración', score: 95, status: IntakeValidationStatus.Valid },
-        { id: '5', label: 'Confianza OCR', score: 91, status: IntakeValidationStatus.Valid },
-        { id: '6', label: 'Anomalías', score: 68, status: IntakeValidationStatus.Warning },
-        { id: '7', label: 'Completitud documental', score: 85, status: IntakeValidationStatus.Valid },
-      ]),
-    );
+    const context = await this.getAiValidationContext();
+    return context.metrics;
   }
 
   async getAiResult(): Promise<AiResultSummary> {
-    const primaryId = this.flow.activeCase().primaryIncapacidadId;
-    if (primaryId) {
-      try {
-        const detail = await this.ai.getIncapacidad(primaryId);
-        return AiIncapacidadAdapter.toAiResultSummary(detail);
-      } catch {
-        // fallback mock
-      }
-    }
-
-    return firstValueFrom(of(
-      ProcessingAdapter.toAiResult({
-        status: AiResultStatus.ManualReview,
-        confidence: 78,
-        findings: [{ message: 'Inconsistencia en fechas' }, { message: 'OCR bajo página 3' }],
-      }),
-    ));
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+    const scraping = this.resolveScraping(primaryId, detail.scraping);
+    return AiIncapacidadAdapter.toAiResultSummary({ ...detail, scraping });
   }
 
   async submitManualReview(model: ManualReviewPayload): Promise<{ success: boolean }> {
     void ProcessingAdapter.manualReviewToPayload(model);
-    return firstValueFrom(of({ success: true }));
+    return { success: true };
   }
 
   async submitRequirement(model: RequirementPayload): Promise<{ success: boolean }> {
     void WorkflowAdapter.requirementToPayload(model);
-    return firstValueFrom(of({ success: true }));
+    return { success: true };
   }
 
   async getBusinessValidations(): Promise<ValidationCheck[]> {
-    return firstValueFrom(of(
-      WorkflowAdapter.toValidationChecks({
-        checks: [
-          { id: '1', label: 'Fechas coherentes', passed: true },
-          { id: '2', label: 'Días incapacidad', passed: true },
-          { id: '3', label: 'Duplicidad', passed: false, detail: 'Documento ya radicado' },
-          { id: '4', label: 'Documento completo', passed: true },
-          { id: '5', label: 'Formato EPS', passed: true },
-          { id: '6', label: 'Reglas parametrizadas', passed: true },
-          { id: '7', label: 'Validaciones internas', passed: true },
-        ],
-      }),
-    ));
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+
+    if (AiIncapacidadAdapter.isProcessingFailed(detail)) {
+      const reason = detail.motivo ?? 'No se pudo procesar el documento';
+      return [
+        { id: '1', label: 'Fechas coherentes', passed: false, detail: reason },
+        { id: '2', label: 'Días incapacidad', passed: false, detail: reason },
+        { id: '3', label: 'Duplicidad / alertas IA', passed: false, detail: reason },
+        { id: '4', label: 'Documento completo', passed: false, detail: reason },
+        { id: '5', label: 'Estado IA', passed: false, detail: reason },
+      ];
+    }
+
+    return [
+      {
+        id: '1',
+        label: 'Fechas coherentes',
+        passed: !detail.anomaliasDetectadas.some((item) => item.toLowerCase().includes('fecha')),
+        detail: detail.anomaliasDetectadas.find((item) => item.toLowerCase().includes('fecha')),
+      },
+      {
+        id: '2',
+        label: 'Días incapacidad',
+        passed: Boolean(detail.datosExtraidos?.diasIncapacidad),
+        detail: detail.datosExtraidos?.diasIncapacidad ? `${detail.datosExtraidos.diasIncapacidad} días` : undefined,
+      },
+      {
+        id: '3',
+        label: 'Duplicidad / alertas IA',
+        passed: detail.findings.length === 0,
+        detail: detail.findings[0],
+      },
+      {
+        id: '4',
+        label: 'Documento completo',
+        passed: Boolean(detail.datosExtraidos),
+      },
+      {
+        id: '5',
+        label: 'Estado IA',
+        passed: detail.estado === AiResultStatus.Approved,
+        detail: detail.motivo,
+      },
+    ];
   }
 
   async getInstitutionalValidations(): Promise<ValidationCheck[]> {
-    const primaryId = this.flow.activeCase().primaryIncapacidadId;
-    if (primaryId) {
-      try {
-        const detail = await this.ai.getIncapacidad(primaryId);
-        const registro = detail.datosExtraidos?.medicoRegistroDocumento;
-        const rethus = registro ? await this.ai.verificarRethus(registro) : null;
-
-        return [
-          {
-            id: '1',
-            label: 'Médico en RETHUS',
-            passed: rethus ? rethus.existe && rethus.estado === 'ACTIVO' : !detail.requiereVerificacionRethus,
-            detail: rethus ? `${rethus.nombreMedico} (${rethus.estado})` : undefined,
-          },
-          { id: '2', label: 'IPS/prestador en REPS', passed: Boolean(detail.datosExtraidos?.ipsNombre) },
-          { id: '3', label: 'Afiliación EPS', passed: Boolean(detail.datosExtraidos?.eps), detail: detail.datosExtraidos?.eps },
-          { id: '4', label: 'Validación gubernamental futura', passed: true },
-          { id: '5', label: 'Coherencia datos usuario', passed: detail.anomaliasDetectadas.length === 0, detail: detail.anomaliasDetectadas[0] },
-        ];
-      } catch {
-        // fallback mock
-      }
-    }
-
-    return firstValueFrom(of(
-      WorkflowAdapter.toValidationChecks({
-        checks: [
-          { id: '1', label: 'Médico en RETHUS', passed: true },
-          { id: '2', label: 'IPS/prestador en REPS', passed: true },
-          { id: '3', label: 'Afiliación EPS', passed: false, detail: 'Afiliación inactiva' },
-          { id: '4', label: 'Validación gubernamental futura', passed: true },
-          { id: '5', label: 'Coherencia datos usuario', passed: true },
-        ],
-      }),
-    ));
+    const primaryId = this.requireIncapacidadId();
+    const detail = await this.ai.getIncapacidad(primaryId);
+    const scraping = this.resolveScraping(primaryId, detail.scraping);
+    return AiIncapacidadAdapter.toInstitutionalChecks({ ...detail, scraping }, scraping);
   }
 
   async submitExpediente(model: ExpedientePayload): Promise<{ success: boolean }> {
     void WorkflowAdapter.expedienteToPayload(model);
-    return firstValueFrom(of({ success: true }));
+    return { success: true };
   }
 
   async submitRadicacion(model: RadicacionPayload): Promise<{ success: boolean }> {
     void WorkflowAdapter.radicacionToPayload(model);
-    return firstValueFrom(of({ success: true }));
+    return { success: true };
   }
 
   async submitEpsResponse(model: EpsResponsePayload): Promise<EpsResponsePayload> {
-    return firstValueFrom(of(EpsResponseAdapter.fromApi(EpsResponseAdapter.toPayload(model))));
+    return EpsResponseAdapter.fromApi(EpsResponseAdapter.toPayload(model));
   }
 
-  async getTimeline(): Promise<WorkflowTimelineEvent[]> {
-    return firstValueFrom(of(
-      WorkflowAdapter.toTimeline({
-        events: [
-          { id: '1', stage: WorkflowStage.Intake, title: 'Carga masiva', description: '12 documentos', timestamp: '2026-05-20T10:00:00', actor: 'Empresa' },
-          { id: '2', stage: WorkflowStage.Preprocessing, title: 'OCR', description: 'Indexado', timestamp: '2026-05-20T10:15:00', actor: 'Sistema' },
-        ],
-      }),
-    ));
+  async getTimeline(): Promise<never[]> {
+    return [];
   }
 
   async getDashboard(): Promise<DashboardSummary> {
-    try {
-      const items = await this.ai.listIncapacidades();
-      if (items.length) {
-        return this.buildDashboardFromIncapacidades(items);
-      }
-    } catch {
-      // fallback mock
-    }
-
-    return firstValueFrom(of(
-      WorkflowAdapter.toDashboard({
-        metrics: [
-          { label: 'En proceso', value: 24, trend: '+3', icon: 'pi pi-sync' },
-          { label: 'Aprobados', value: 156, trend: '+12', icon: 'pi pi-check-circle' },
-          { label: 'Glosas', value: 8, icon: 'pi pi-exclamation-circle' },
-          { label: 'Rechazados', value: 5, icon: 'pi pi-times-circle' },
-        ],
-        recentRequirements: [{ id: 'r1', title: 'Recargar incapacidad', status: 'Pendiente' }],
-        recentGlosas: [{ id: 'g1', code: 'G-104', detail: 'Fecha inconsistente' }],
-        finalResults: [{ id: 'f1', status: EpsResponseStatus.Approved, date: '2026-05-18' }],
-      }),
-    ));
+    const items = await this.ai.listIncapacidades();
+    return this.buildDashboardFromIncapacidades(items);
   }
 
   async confirmStage(stage: WorkflowStage): Promise<{ success: boolean }> {
-    void stage;
-    return firstValueFrom(of({ success: true }));
+    this.flow.navigateNext(stage);
+    return { success: true };
   }
 
   async listIncapacidades(filters: IncapacidadListFilters = {}): Promise<IncapacidadListItem[]> {
@@ -284,8 +235,32 @@ export class WorkflowService {
     return this.ai.getAlertas();
   }
 
+  getScraping(incapacidadId?: string): ScrapingResults | undefined {
+    const id = incapacidadId ?? this.flow.activeCase().primaryIncapacidadId;
+    if (!id) return undefined;
+    return this.scrapingState.get(id);
+  }
+
+  isScrapingPending(incapacidadId?: string): boolean {
+    const id = incapacidadId ?? this.flow.activeCase().primaryIncapacidadId;
+    if (!id) return false;
+    return this.scrapingState.isPending(id);
+  }
+
+  connectRealtime(): void {
+    this.realtime.connect();
+  }
+
   isAiApiError(error: unknown): error is AiApiError {
     return error instanceof AiApiError;
+  }
+
+  private requireIncapacidadId(): string {
+    const id = this.flow.activeCase().primaryIncapacidadId;
+    if (!id) {
+      throw new AiApiError('No hay una incapacidad activa. Cargue un documento primero.', 400);
+    }
+    return id;
   }
 
   private buildDashboardFromIncapacidades(items: IncapacidadListItem[]): DashboardSummary {
@@ -322,20 +297,18 @@ export class WorkflowService {
     };
   }
 
+  private resolveScraping(incapacidadId: string, fromApi?: ScrapingResults): ScrapingResults | undefined {
+    const cached = this.scrapingState.get(incapacidadId);
+    if (cached && fromApi) {
+      return AiIncapacidadAdapter.mergeScraping(fromApi, cached);
+    }
+    return cached ?? fromApi;
+  }
+
   private mapAiStatusToValidation(status: AiResultStatus): IntakeValidationStatus {
     if (status === AiResultStatus.Approved) return IntakeValidationStatus.Valid;
     if (status === AiResultStatus.Rejected) return IntakeValidationStatus.Invalid;
     if (status === AiResultStatus.ManualReview || status === AiResultStatus.Pending) return IntakeValidationStatus.Warning;
     return IntakeValidationStatus.Pending;
-  }
-
-  private mockIntakeFiles(): IntakeFileResponse[] {
-    return IntakeAdapter.toDomainList({
-      files: [
-        { id: '1', name: 'incapacidad-001.pdf', type: DocumentFileType.Pdf, sizeBytes: 204800, validationStatus: IntakeValidationStatus.Valid },
-        { id: '2', name: 'soporte.jpg', type: DocumentFileType.Image, sizeBytes: 512000, validationStatus: IntakeValidationStatus.Valid },
-        { id: '3', name: 'duplicado.pdf', type: DocumentFileType.Pdf, sizeBytes: 102400, validationStatus: IntakeValidationStatus.Invalid, validationMessage: 'Duplicado' },
-      ],
-    });
   }
 }

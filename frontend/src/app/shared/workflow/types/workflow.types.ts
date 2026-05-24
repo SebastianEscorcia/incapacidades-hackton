@@ -4,7 +4,7 @@ import {
   IntakeValidationStatus,
   WorkflowStage,
 } from './workflow.enums';
-import { IncapacidadExtractedData } from './ai.types';
+import { IncapacidadExtractedData, ScrapingResults } from './ai.types';
 
 export interface WorkflowStep {
   stage: WorkflowStage;
@@ -13,11 +13,22 @@ export interface WorkflowStep {
   icon: string;
 }
 
+export type PreprocessingTaskState = 'pending' | 'completed' | 'failed';
+
 export interface PreprocessingTask {
   id: string;
   label: string;
-  completed: boolean;
+  state: PreprocessingTaskState;
   detail?: string;
+}
+
+export interface AiValidationContext {
+  metrics: AiValidationMetric[];
+  processingFailed: boolean;
+  processingPending: boolean;
+  motivo?: string;
+  estado: AiResultStatus;
+  scrapingPending: boolean;
 }
 
 export interface AiValidationMetric {
@@ -67,4 +78,5 @@ export interface AiResultSummary {
   datosExtraidos?: IncapacidadExtractedData;
   requiereVerificacionRethus?: boolean;
   fechaProcesamiento?: string;
+  scraping?: ScrapingResults;
 }

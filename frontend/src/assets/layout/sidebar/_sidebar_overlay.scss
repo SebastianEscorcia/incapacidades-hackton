@@ -1,0 +1,60 @@
+@use '../sass_variables' as *;
+
+@media screen and (min-width: $breakpoint) {
+    .layout-overlay {
+        .layout-sidebar {
+            background: var(--surface-card);
+            border-right: 1px solid var(--surface-border);
+            box-shadow: 4px 0 16px rgb(0 0 0 / 8%);
+
+            .layout-menu-container {
+                padding: 1rem 1.5rem;
+            }
+
+            .layout-menu {
+                .layout-root-menuitem {
+                    > .layout-menuitem-root-text {
+                        display: none;
+                    }
+
+                    > a {
+                        display: flex !important;
+                        align-items: center;
+                        width: 100%;
+                        color: var(--v-menuitem-text-color, var(--text-color));
+
+                        .layout-menuitem-icon {
+                            display: inline-flex;
+                            margin-right: 0.5rem;
+                            color: inherit;
+                        }
+
+                        .layout-menuitem-text {
+                            display: inline !important;
+                            opacity: 1;
+                            visibility: visible;
+                            color: inherit;
+                        }
+
+                        &.active-route {
+                            font-weight: 700;
+                            color: var(--primary-color) !important;
+                            background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-card));
+                            border-left: 3px solid var(--primary-color);
+                            padding-left: calc(0.5rem - 3px);
+
+                            .layout-menuitem-icon,
+                            .layout-menuitem-text {
+                                color: var(--primary-color) !important;
+                            }
+                        }
+
+                        &:hover {
+                            background: var(--v-menuitem-hover-bg, var(--surface-hover));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

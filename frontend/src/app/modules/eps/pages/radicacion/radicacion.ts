@@ -6,7 +6,7 @@ import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { RadicacionChannel, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { FormRadicacion } from './form-radicacion';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { I18nService } from '@/core/i18n/i18n.service';
@@ -19,7 +19,7 @@ import { I18nService } from '@/core/i18n/i18n.service';
   styleUrl: './radicacion.scss',
 })
 export class RadicacionPage {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
   private readonly confirmation = inject(ConfirmationService);
@@ -74,5 +74,9 @@ export class RadicacionPage {
         })();
       },
     });
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

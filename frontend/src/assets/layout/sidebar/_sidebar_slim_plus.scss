@@ -3,15 +3,6 @@
 @media screen and (min-width: $breakpoint) {
     .layout-slim-plus {
         .layout-topbar {
-            .app-logo {
-                width: 5rem;
-                justify-content: center;
-
-                span {
-                    display: none;
-                }
-            }
-
             .topbar-menu {
                 margin: 0 2rem;
             }
@@ -75,6 +66,20 @@
                         background: var(--v-menuitem-hover-bg);
                     }
 
+                    &.active-route {
+                        background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-card));
+                        color: var(--primary-color) !important;
+
+                        .layout-menuitem-icon {
+                            color: var(--primary-color) !important;
+                        }
+
+                        .layout-menuitem-text {
+                            color: var(--primary-color) !important;
+                            font-weight: 700;
+                        }
+                    }
+
                     .layout-submenu-toggler {
                         display: none;
                     }
@@ -113,6 +118,16 @@
 
                         &:hover {
                             background: var(--v-overlay-menuitem-hover-bg);
+                        }
+
+                        &.active-route {
+                            color: var(--primary-color) !important;
+                            font-weight: 700;
+                            background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-overlay));
+
+                            .layout-menuitem-icon {
+                                color: var(--primary-color) !important;
+                            }
                         }
                     }
 

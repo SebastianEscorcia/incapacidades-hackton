@@ -10,6 +10,7 @@ import { AppBreadcrumb } from './app.breadcrumb';
 import { AppSidebar } from "./app.sidebar";
 import { MenuItem } from 'primeng/api';
 import { WorkflowTracker } from '@shared/workflow/components/workflow-tracker/workflow-tracker';
+import { AiRealtimeService } from '@shared/workflow/services/ai-realtime.service';
 
 @Component({
     selector: 'app-layout',
@@ -46,7 +47,18 @@ export class AppLayout implements OnDestroy {
     shouldShowTracker(): boolean {
         if (!this.showWorkflowTracker()) return false;
         const url = this.router.url;
-        return url !== '/empresa' && url !== '/eps' && !url.includes('/timeline');
+        return url !== '/empresa' && url !== '/empresa/empresas' && url !== '/eps' && !url.includes('/timeline') && !url.includes('/auditoria');
+    }
+
+    private syncWorkflowWebSocket(): void {
+        if (this.shouldShowTracker()) {
+            this.aiRealtime.connect();
+            return;
+        }
+
+        if (this.showWorkflowTracker()) {
+            this.aiRealtime.disconnect();
+        }
     }
 
     tabOpenSubscription: Subscription;
@@ -64,27 +76,35 @@ export class AppLayout implements OnDestroy {
     constructor(
         public layoutService: LayoutService,
         public renderer: Renderer2,
-        public router: Router
+        public router: Router,
+        private readonly aiRealtime: AiRealtimeService,
     ) {
         effect(() => {
             console.log('AppLayout constructor', this.menu());
 
         })
 
+        this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
+            this.hideMenu();
+            this.syncWorkflowWebSocket();
+        });
+
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
-            if (!this.menuOutsideClickListener) {
+            setTimeout(() => {
+                if (this.menuOutsideClickListener) return;
+
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', (event) => {
+                    const target = event.target as Node;
+                    const sidebarEl = this.appSidebar.el.nativeElement;
                     const isOutsideClicked = !(
-                        this.appSidebar.appMenu.el.nativeElement.isSameNode(event.target) ||
-                        this.appSidebar.appMenu.el.nativeElement.contains(event.target) ||
-                        this.appTopbar.menuButton.nativeElement.isSameNode(event.target) ||
-                        this.appTopbar.menuButton.nativeElement.contains(event.target)
+                        sidebarEl.contains(target) ||
+                        this.appTopbar.menuButton.nativeElement.contains(target)
                     );
                     if (isOutsideClicked) {
                         this.hideMenu();
                     }
                 });
-            }
+            }, 0);
 
             if ((this.layoutService.isSlim() || this.layoutService.isSlimPlus()) && !this.menuScrollListener) {
                 this.menuScrollListener = this.renderer.listen(this.appSidebar.appMenu.menuContainer.nativeElement, 'scroll', (event) => {
@@ -97,10 +117,6 @@ export class AppLayout implements OnDestroy {
             if (this.layoutService.layoutState().staticMenuMobileActive) {
                 this.blockBodyScroll();
             }
-        });
-
-        this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-            this.hideMenu();
         });
 
         this.tabOpenSubscription = this.layoutService.tabOpen$.subscribe((tab) => {
@@ -186,6 +202,10 @@ export class AppLayout implements OnDestroy {
 
         if (this.tabCloseSubscription) {
             this.tabCloseSubscription.unsubscribe();
+        }
+
+        if (this.showWorkflowTracker()) {
+            this.aiRealtime.disconnect();
         }
     }
 }

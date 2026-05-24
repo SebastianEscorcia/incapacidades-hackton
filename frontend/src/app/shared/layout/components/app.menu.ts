@@ -8,6 +8,16 @@ import { AppMenuitem } from './app.menuitem';
     selector: 'app-menu',
     standalone: true,
     imports: [CommonModule, AppMenuitem, RouterModule],
+    styles: [
+        `
+            :host {
+                display: block;
+                width: 100%;
+                height: 100%;
+                min-height: 0;
+            }
+        `,
+    ],
     template: `<div class="layout-menu-container" #menuContainer>
         <ul class="layout-menu">
             <ng-container *ngFor="let item of model(); let i = index">
