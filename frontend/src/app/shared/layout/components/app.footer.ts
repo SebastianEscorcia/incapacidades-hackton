@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { logo } from '@assets/images/shared';
 import { LayoutService } from '../service/layout.service';
+import { environment } from '../../../../environments/environment';
 
 
 @Component({
@@ -8,10 +9,10 @@ import { LayoutService } from '../service/layout.service';
     selector: '[app-footer]',
     template: ` <div class="footer-start">
             <img [src]="logo" alt="logo" />
-            <span class="app-name">Veterinaria</span>
+            <span class="app-name">{{ appName }}</span>
         </div>
         <div class="footer-right">
-            <span>©Veterinaria</span>
+            <span>©{{ appName }}</span>
         </div>`,
     host: {
         class: 'layout-footer'
@@ -20,4 +21,5 @@ import { LayoutService } from '../service/layout.service';
 export class AppFooter {
     logo = logo
     layoutService = inject(LayoutService);
+    readonly appName = environment.app_name;
 }

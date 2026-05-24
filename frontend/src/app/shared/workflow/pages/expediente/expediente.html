@@ -1,0 +1,21 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'workflow.expediente.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'workflow.expediente.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'workflow.expediente.subtitle' | translate }}</p>
+  </header>
+  <p-card styleClass="workflow-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+      <input pInputText formControlName="documentIds" [placeholder]="'workflow.expediente.documentIds' | translate" class="w-full" />
+      <div class="grid gap-3 md:grid-cols-2">
+        <input pInputText formControlName="metadataKey" [placeholder]="'workflow.expediente.metadataKey' | translate" class="w-full" />
+        <input pInputText formControlName="metadataValue" [placeholder]="'workflow.expediente.metadataValue' | translate" class="w-full" />
+      </div>
+      <label class="flex items-center gap-3"><p-checkbox formControlName="includeAnnexes" [binary]="true" /><span>{{ 'workflow.expediente.includeAnnexes' | translate }}</span></label>
+      <textarea pTextarea formControlName="auditNotes" rows="3" class="w-full" [placeholder]="'workflow.expediente.auditNotes' | translate"></textarea>
+      <div class="workflow-actions"><p-button type="submit" [label]="'workflow.expediente.consolidate' | translate" icon="pi pi-folder" [disabled]="form.invalid" /></div>
+    </form>
+  </p-card>
+</section>

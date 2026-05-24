@@ -1,0 +1,40 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'eps.radicacion.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'eps.radicacion.title' | translate }}</h1>
+  </header>
+  <div class="grid gap-4 lg:grid-cols-5">
+    @for (channel of channels; track channel.label) {
+      <article class="workflow-channel-card">
+        <i [class]="channel.icon + ' mb-2 block text-xl workflow-icon-primary'"></i>{{ channel.label | translate }}
+      </article>
+    }
+  </div>
+  <p-card styleClass="workflow-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+      <div class="grid gap-4 md:grid-cols-2">
+        <p-select formControlName="channel" [options]="channelOptions" optionValue="value" styleClass="w-full">
+          <ng-template pTemplate="selectedItem" let-selectedOption>
+            {{ selectedOption.label | translate }}
+          </ng-template>
+          <ng-template pTemplate="item" let-option>
+            {{ option.label | translate }}
+          </ng-template>
+        </p-select>
+        <p-select formControlName="targetEntity" [options]="entities" optionValue="value" styleClass="w-full">
+          <ng-template pTemplate="selectedItem" let-selectedOption>
+            {{ selectedOption.label }}
+          </ng-template>
+          <ng-template pTemplate="item" let-option>
+            {{ option.label }}
+          </ng-template>
+        </p-select>
+      </div>
+      <input pInputText formControlName="referenceCode" [placeholder]="'eps.radicacion.referenceCode' | translate" class="w-full" />
+      <textarea pTextarea formControlName="notes" rows="3" class="w-full" [placeholder]="'eps.radicacion.notes' | translate"></textarea>
+      <div class="workflow-actions"><p-button type="submit" [label]="'eps.radicacion.fileBtn' | translate" icon="pi pi-send" [disabled]="form.invalid" /></div>
+    </form>
+  </p-card>
+</section>

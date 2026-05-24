@@ -1,0 +1,34 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'empresa.requirement.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'empresa.requirement.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'empresa.requirement.subtitle' | translate }}</p>
+  </header>
+  <p-card styleClass="workflow-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
+      <p-select formControlName="action" [options]="actions" optionValue="value" styleClass="w-full">
+        <ng-template pTemplate="selectedItem" let-selectedOption>
+          {{ selectedOption.label | translate }}
+        </ng-template>
+        <ng-template pTemplate="item" let-option>
+          {{ option.label | translate }}
+        </ng-template>
+      </p-select>
+      <textarea pTextarea formControlName="description" rows="3" class="w-full" [placeholder]="'empresa.requirement.description' | translate"></textarea>
+      <div formArrayName="fields" class="grid gap-3">
+        @for (item of fields.controls; track $index) {
+          <div [formGroupName]="$index" class="flex gap-3 items-center">
+            <input pInputText formControlName="fieldKey" [placeholder]="'empresa.requirement.fieldToCorrect' | translate" class="w-full" />
+            <input pInputText formControlName="fieldValue" [placeholder]="'empresa.requirement.correctedValue' | translate" class="w-full" />
+            <p-button type="button" icon="pi pi-trash" severity="danger" [disabled]="fields.length <= 1" (onClick)="removeField($index)" />
+          </div>
+        }
+      </div>
+      <p-button type="button" [label]="'empresa.requirement.addField' | translate" icon="pi pi-plus" severity="secondary" class="p-button-sm self-start" (onClick)="addField()" />
+      <p-fileUpload mode="basic" [chooseLabel]="'empresa.requirement.attachSupport' | translate" [multiple]="true" (onSelect)="onFilesSelected($event)" />
+      <div class="workflow-actions"><p-button type="submit" [label]="'empresa.requirement.submitRequirement' | translate" icon="pi pi-send" [disabled]="form.invalid" /></div>
+    </form>
+  </p-card>
+</section>

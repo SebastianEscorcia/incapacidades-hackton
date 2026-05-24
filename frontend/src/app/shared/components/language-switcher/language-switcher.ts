@@ -1,68 +1,54 @@
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { TranslatePipe } from '../../../core/i18n/translate.pipe';
-import type { AppLanguage } from '../../../core/i18n/i18n.types';
 
 @Component({
   selector: 'app-language-switcher',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [CommonModule, FormsModule, ToggleSwitchModule],
   template: `
-    <div class="language-switcher" role="group" [attr.aria-label]="'common.language' | translate">
-      @for (language of i18n.languages; track language.code) {
-        <button
-          type="button"
-          class="language-option"
-          [class.active]="i18n.language() === language.code"
-          (click)="setLanguage(language.code)"
-        >
-          <span
-            class="flag"
-            [class.flag-en]="language.code === 'en'"
-            [class.flag-es]="language.code === 'es'"
-          ></span>
-          <span>{{ language.label }}</span>
-        </button>
-      }
+    <div class="language-toggle-wrapper">
+      <span
+        class="flag-icon flag-es"
+        [class.inactive]="isEnglish"
+        (click)="setLanguage('es')"
+        title="Español"
+      ></span>
+      <p-toggleswitch [(ngModel)]="isEnglish"></p-toggleswitch>
+      <span
+        class="flag-icon flag-en"
+        [class.inactive]="!isEnglish"
+        (click)="setLanguage('en')"
+        title="English"
+      ></span>
     </div>
   `,
   styles: [
     `
-      .language-switcher {
+      .language-toggle-wrapper {
         display: inline-flex;
         align-items: center;
-        gap: 0.375rem;
-        border: 1px solid #dbe3ef;
-        border-radius: 999px;
-        padding: 0.25rem;
-        background: #f8fafc;
+        gap: 0.5rem;
+        padding: 0.35rem 0.5rem;
       }
 
-      .language-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.375rem;
-        border: 0;
-        border-radius: 999px;
-        padding: 0.35rem 0.625rem;
-        color: #334155;
-        background: transparent;
+      .flag-icon {
+        width: 1.5rem;
+        height: 1.05rem;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
         cursor: pointer;
-        font: inherit;
+        transition: opacity 0.2s ease, transform 0.2s ease;
       }
 
-      .language-option.active {
-        color: #111827;
-        background: #ffffff;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+      .flag-icon:hover {
+        transform: scale(1.1);
       }
 
-      .flag {
-        width: 1.25rem;
-        height: 0.875rem;
-        border-radius: 0.125rem;
-        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18);
-        overflow: hidden;
+      .flag-icon.inactive {
+        opacity: 0.35;
       }
 
       .flag-es {
@@ -70,8 +56,7 @@ import type { AppLanguage } from '../../../core/i18n/i18n.types';
       }
 
       .flag-en {
-        background:
-          linear-gradient(90deg, transparent 0 42%, #c8102e 42% 58%, transparent 58% 100%),
+        background: linear-gradient(90deg, transparent 0 42%, #c8102e 42% 58%, transparent 58% 100%),
           linear-gradient(0deg, transparent 0 38%, #c8102e 38% 62%, transparent 62% 100%),
           linear-gradient(90deg, transparent 0 35%, #ffffff 35% 65%, transparent 65% 100%),
           linear-gradient(0deg, transparent 0 30%, #ffffff 30% 70%, transparent 70% 100%), #012169;
@@ -80,9 +65,17 @@ import type { AppLanguage } from '../../../core/i18n/i18n.types';
   ],
 })
 export class LanguageSwitcher {
-  protected readonly i18n = inject(I18nService);
+  private readonly i18n = inject(I18nService);
 
-  setLanguage(language: AppLanguage): void {
-    this.i18n.setLanguage(language);
+  get isEnglish(): boolean {
+    return this.i18n.language() === 'en';
+  }
+
+  set isEnglish(value: boolean) {
+    this.i18n.setLanguage(value ? 'en' : 'es');
+  }
+
+  setLanguage(lang: 'en' | 'es'): void {
+    this.i18n.setLanguage(lang);
   }
 }

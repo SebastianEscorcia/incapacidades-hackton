@@ -22,6 +22,7 @@
       "@administration": ["./src/app/modules/admin/*"],
       "@public": ["./src/app/modules/public/*"],
       "@shared/*": ["./src/app/shared/*"],
+      "@sharedWorkflow/*": ["./src/app/shared/workflow/*"],
       "@adminLayout/*": ["./src/app/modules/admin/layout/*"],
       "@assets/*":["./src/assets/*"]
 

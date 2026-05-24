@@ -1,0 +1,24 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'workflow.aiValidation.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'workflow.aiValidation.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'workflow.aiValidation.subtitle' | translate }}</p>
+  </header>
+  @if (loading()) { <p-skeleton height="16rem" /> } @else {
+    <div class="grid gap-4 lg:grid-cols-2">
+      @for (metric of metrics; track metric.id) {
+        <article class="workflow-card p-4">
+          <div class="mb-2 flex items-center justify-between">
+            <h2 class="workflow-card-title">{{ metric.label | translateContent }}</h2>
+            <p-tag [value]="metric.status | translateContent" [severity]="severity(metric.status)" />
+          </div>
+          <p-progressBar [value]="metric.score" [showValue]="true" />
+          @if (metric.detail) { <p class="mt-2 text-sm workflow-text-muted">{{ metric.detail | translateContent }}</p> }
+        </article>
+      }
+    </div>
+    <div class="workflow-actions"><p-button [label]="'workflow.aiValidation.generate' | translate" icon="pi pi-sparkles" (onClick)="confirmStage()" /></div>
+  }
+</section>

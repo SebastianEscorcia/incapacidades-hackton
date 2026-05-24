@@ -1,0 +1,32 @@
+<div class="auth-shell">
+  <aside class="auth-shell__brand">
+    <div class="auth-shell__brand-inner">
+      <div class="auth-shell__logo">{{ appName().charAt(0) }}</div>
+      <h1>{{ 'auth.brandTitle' | translate }}</h1>
+      <p>{{ 'auth.brandSubtitle' | translate }}</p>
+      <ul class="auth-shell__features">
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.feature1' | translate }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.feature2' | translate }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.feature3' | translate }}</li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="auth-shell__panel">
+    <div class="auth-shell__panel-top">
+      <app-language-switcher />
+    </div>
+    <div class="auth-shell__card">
+      @if (icon()) {
+        <div class="auth-shell__icon"><i [class]="icon()"></i></div>
+      }
+      <div class="auth-shell__heading">
+        <h2>{{ title() }}</h2>
+        @if (subtitle()) {
+          <p>{{ subtitle() }}</p>
+        }
+      </div>
+      <ng-content />
+    </div>
+  </main>
+</div>

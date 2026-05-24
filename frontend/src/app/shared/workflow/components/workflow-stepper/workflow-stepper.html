@@ -1,0 +1,17 @@
+<nav class="overflow-x-auto pb-2">
+  <ol class="flex min-w-max gap-2 md:gap-3">
+    @for (step of visibleSteps(); track step.stage) {
+      <li>
+        <a
+          [routerLink]="step.path"
+          routerLinkActive="step-active"
+          class="step-link"
+          [class.step-current]="activeStep() === step.stage"
+        >
+          <i [class]="step.icon"></i>
+          <span class="hidden sm:inline">{{ step.label }}</span>
+        </a>
+      </li>
+    }
+  </ol>
+</nav>

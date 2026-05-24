@@ -1,0 +1,23 @@
+<p-confirmdialog /><p-toast />
+<section class="workflow-page">
+  <workflow-flow-nav [stage]="stage" />
+  <header class="workflow-header">
+    <span class="workflow-eyebrow">{{ 'workflow.institutionalValidation.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ 'workflow.institutionalValidation.title' | translate }}</h1>
+    <p class="workflow-subtitle">{{ 'workflow.institutionalValidation.subtitle' | translate }}</p>
+  </header>
+  @if (loading()) { <p-skeleton height="14rem" /> } @else {
+    <ul class="grid gap-3 md:grid-cols-2">
+      @for (check of checks(); track check.id) {
+        <li class="workflow-check-row workflow-card p-4">
+          <i [class]="check.passed ? 'pi pi-check-circle workflow-check-icon--ok' : 'pi pi-times-circle workflow-check-icon--fail'"></i>
+          <div><strong>{{ check.label | translateContent }}</strong>@if (check.detail) { <p class="workflow-check-detail">{{ check.detail | translateContent }}</p> }</div>
+        </li>
+      }
+    </ul>
+    <div class="workflow-actions">
+      <p-button [label]="'workflow.institutionalValidation.continue' | translate" severity="success" (onClick)="confirm(true)" [disabled]="!allPassed()" />
+      <p-button [label]="'workflow.institutionalValidation.generateIncident' | translate" severity="warn" (onClick)="confirm(false)" [disabled]="allPassed()" />
+    </div>
+  }
+</section>

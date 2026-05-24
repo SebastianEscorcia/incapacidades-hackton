@@ -1,0 +1,69 @@
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.auth-error {
+  color: var(--p-red-500, #ef4444);
+  font-size: 0.8125rem;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.auth-links {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.auth-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, var(--surface-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-card));
+  color: var(--primary-color);
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.auth-links a:hover {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 15%, var(--surface-card));
+}
+
+.auth-mock {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--surface-border);
+}
+
+.auth-muted {
+  color: var(--text-color-secondary);
+  text-align: center;
+  font-size: 0.8125rem;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-password,
+:host ::ng-deep .p-password-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+}
+
+:host ::ng-deep .auth-submit {
+  width: 100%;
+  justify-content: center;
+}
