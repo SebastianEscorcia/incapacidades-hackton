@@ -1,12 +1,12 @@
-const { chromium } = require('playwright');
-const fs = require('fs');
-const path = require('path');
+import { chromium } from 'playwright';
+import fs from 'fs';
+import path from 'path';
 
 const OUTPUT_PATH = path.join(__dirname, 'eps_data_result.json');
 const TARGET_URL = 'https://www.adres.gov.co/consulte-su-eps';
 const FORM_FRAME_URL = 'aplicaciones.adres.gov.co';
 
-function normalizeText(value: unknown = '') {
+function normalizeText(value = '') {
   return String(value)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -71,7 +71,7 @@ function validateAdresResult(result: any, expectedEps?: string | null) {
   const epsMatch = affiliationRows.some((row: Record<string, unknown>) =>
     Object.entries(row || {}).some(([key, value]) => {
       const normalizedKey = normalizeText(key);
-      const normalizedValue = normalizeText(value);
+      const normalizedValue = normalizeText(value as any);
       const isEpsField =
         normalizedKey.includes('eps') ||
         normalizedKey.includes('entidad') ||
@@ -136,7 +136,9 @@ async function extractData(frameOrPage: any) {
           if (cells.length === 2) {
             const key = cells[0].innerText.trim();
             const val = cells[1].innerText.trim();
-            if (key) data.informacionBasica[key] = val;
+            if (key) {
+              (data.informacionBasica as Record<string, string>)[key] = val;
+            }
           }
         });
       }

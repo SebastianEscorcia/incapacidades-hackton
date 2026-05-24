@@ -9,7 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiModule = void 0;
 const common_1 = require("@nestjs/common");
 const ai_controller_1 = require("./controller/ai.controller");
+const eps_ai_controller_1 = require("./controller/eps-ai.controller");
 const ai_service_1 = require("./services/ai.service");
+const eps_ai_service_1 = require("./services/eps-ai.service");
 const ai_gateway_1 = require("./gateway/ai.gateway");
 const ai_repository_1 = require("./repository/ai.repository");
 const config_1 = require("@nestjs/config");
@@ -20,11 +22,13 @@ exports.AiModule = AiModule = __decorate([
     (0, common_1.Module)({
         imports: [],
         controllers: [
-            ai_controller_1.AiController
+            ai_controller_1.AiController,
+            eps_ai_controller_1.EpsAiController,
         ],
         providers: [
             config_1.ConfigService,
             ai_service_1.AiService,
+            eps_ai_service_1.EpsAiService,
             ai_gateway_1.AiGateway,
             ai_repository_1.AiRepository
         ],

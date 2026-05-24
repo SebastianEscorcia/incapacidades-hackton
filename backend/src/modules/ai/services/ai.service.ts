@@ -5,8 +5,9 @@ import { EncryptionService, IEncryptedData } from '../../encryption/service/encr
 import { AiGateway } from '../gateway/ai.gateway'; // Importamos el Gateway
 import { AiRepository } from '../repository/ai.repository';
 import { IDatosExtraidos } from '../type/ai.type';
-import rethusValidator from '../scrapping/rethus.validator';
 import adresValidator from '../scrapping/adres.validator';
+import rethusValidator from '../scrapping/rethus.validator';
+import { EpsAiService } from './eps-ai.service';
 
 @Injectable()
 export class AiService {
@@ -60,6 +61,7 @@ export class AiService {
     private readonly configService: ConfigService,
     private readonly aiGateway: AiGateway,       // 1. Inyectamos WebSockets
     private readonly aiRepository: AiRepository, // 2. Inyectamos Base de Datos
+    private readonly epsAiService: EpsAiService,
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
@@ -149,6 +151,9 @@ export class AiService {
       anomalias_detectadas: resultadoIA.anomalias_detectadas,
       fecha_procesamiento: new Date(),
       requiere_verificacion_rethus: resultadoIA.estado === 'APROBADO',
+      estado_eps_response: 'EN_PROCESO' as const,
+      mensaje_eps_response: 'Pendiente de simulacion EPS.',
+      requiere_requerimiento_eps: false,
     };
 
     // 4. Guardamos en la base de datos
@@ -159,6 +164,12 @@ export class AiService {
       resultadoIA.datos_extraidos,
     );
 
+    const respuestaEps = await this.epsAiService.simularRespuestaEps(
+      idGenerado,
+      resultadoIA,
+      scrapingResultados,
+    );
+
     return {
       id: idGenerado,
       mensaje: 'Procesamiento completado con éxito',
@@ -166,6 +177,7 @@ export class AiService {
       requiere_accion_manual: resultadoIA.estado === 'REVISIÓN MANUAL',
       alertas: resultadoIA.anomalias_detectadas,
       scraping: scrapingResultados,
+      eps_response: respuestaEps,
     };
   }
   /**
@@ -200,6 +212,9 @@ export class AiService {
       anomalias_detectadas: registro.anomalias_detectadas,
       fecha_procesamiento: registro.fecha_procesamiento,
       requiere_verificacion_rethus: registro.requiere_verificacion_rethus,
+      estado_eps_response: registro.estado_eps_response,
+      mensaje_eps_response: registro.mensaje_eps_response,
+      requiere_requerimiento_eps: registro.requiere_requerimiento_eps,
       datos_extraidos: datosDesencriptados // ¡Aquí va el JSON original legible!
     };
   }
@@ -232,6 +247,9 @@ export class AiService {
         anomalias_detectadas: registro.anomalias_detectadas,
         fecha_procesamiento: registro.fecha_procesamiento,
         requiere_verificacion_rethus: registro.requiere_verificacion_rethus,
+        estado_eps_response: registro.estado_eps_response,
+        mensaje_eps_response: registro.mensaje_eps_response,
+        requiere_requerimiento_eps: registro.requiere_requerimiento_eps,
         datos_extraidos: datosDesencriptados, // Datos legibles del paciente
       };
     });
@@ -348,4 +366,29 @@ export class AiService {
 
     return { rethus, adres };
   }
+
+  async obtenerResumenDashboard(): Promise<{
+    en_proceso: number;
+    glosa: number;
+    rechazado: number;
+    requiere_soporte: number;
+    aprobado: number;
+    total: number;
+  }> {
+    const resumen = await this.aiRepository.obtenerResumenDashboard();
+    return {
+      en_proceso: resumen.EN_PROCESO,
+      glosa: resumen.GLOSA,
+      rechazado: resumen.RECHAZADO,
+      requiere_soporte: resumen.REQUIERE_SOPORTE,
+      aprobado: resumen.APROBADO,
+      total:
+        resumen.EN_PROCESO +
+        resumen.GLOSA +
+        resumen.RECHAZADO +
+        resumen.REQUIERE_SOPORTE +
+        resumen.APROBADO,
+    };
+  }
+
 }

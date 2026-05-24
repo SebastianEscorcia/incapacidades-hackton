@@ -16,6 +16,12 @@ export interface IRespuestaIA {
     anomalias_detectadas: string[];
     datos_extraidos: IDatosExtraidos | null;
 }
+export type EstadoEpsResponse = 'EN_PROCESO' | 'APROBADO' | 'GLOSA' | 'RECHAZADO' | 'REQUIERE_SOPORTE';
+export interface IRespuestaEpsSimulada {
+    estado_eps_response: EstadoEpsResponse;
+    mensaje: string;
+    requiere_requerimiento: boolean;
+}
 export interface IEncryptedData {
     iv: string;
     encryptedData: string;

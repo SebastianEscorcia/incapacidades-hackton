@@ -34,6 +34,10 @@ let AiGateway = AiGateway_1 = class AiGateway {
             .to('sala_auditores')
             .emit('validacion_documental_completada', payload);
     }
+    emitirRespuestaEps(payload) {
+        this.logger.log('Emitiendo respuesta EPS simulada por WebSocket...');
+        this.server.to('sala_auditores').emit('eps_response_completada', payload);
+    }
     handlePing(client, payload) {
         client.emit('pong_auditor', { mensaje: 'Conexión activa con el sistema de IA' });
     }

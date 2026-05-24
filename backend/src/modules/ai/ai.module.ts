@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AiController } from './controller/ai.controller';
+import { EpsAiController } from './controller/eps-ai.controller';
 import { AiService } from './services/ai.service';
+import { EpsAiService } from './services/eps-ai.service';
 import { AiGateway } from './gateway/ai.gateway';
 import { AiRepository } from './repository/ai.repository';
 import { ConfigService } from '@nestjs/config';
@@ -13,11 +15,13 @@ import { ConfigService } from '@nestjs/config';
     // TypeOrmModule.forFeature([IncapacidadEntity])
   ],
   controllers: [
-    AiController // 1. Registramos el endpoint HTTP
+    AiController, // 1. Registramos el endpoint HTTP
+    EpsAiController,
   ],
   providers: [
     ConfigService,
     AiService,      // 2. Registramos la lógica principal
+    EpsAiService,
     AiGateway,      // 3. Registramos las alertas WebSocket
     AiRepository    // 4. Registramos la capa de base de datos
   ],

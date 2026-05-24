@@ -58,6 +58,22 @@ import {
       .to('sala_auditores')
       .emit('validacion_documental_completada', payload);
   }
+
+  emitirRespuestaEps(payload: {
+    incapacidadId: string;
+    estado_eps_response:
+      | 'EN_PROCESO'
+      | 'APROBADO'
+      | 'GLOSA'
+      | 'RECHAZADO'
+      | 'REQUIERE_SOPORTE';
+    mensaje: string;
+    requiere_requerimiento: boolean;
+    finalizadoEn: string;
+  }) {
+    this.logger.log('Emitiendo respuesta EPS simulada por WebSocket...');
+    this.server.to('sala_auditores').emit('eps_response_completada', payload);
+  }
   
     /**
      * Ejemplo de cómo escuchar eventos desde el frontend (si lo necesitas luego)

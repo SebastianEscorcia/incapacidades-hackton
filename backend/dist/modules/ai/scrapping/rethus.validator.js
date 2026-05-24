@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = rethusValidator;
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +13,7 @@ function normalizeText(value = '') {
         .toLowerCase()
         .trim();
 }
-function buildResponse({ status, message, reason = null, document, scraping = true, data = null, }) {
+function buildResponse({ status, message, reason = undefined, document, scraping = true, data = undefined, }) {
     return {
         status,
         payload: {
@@ -100,7 +101,7 @@ async function rethusValidator(docNumber) {
             const img = document.querySelector('#imgCaptcha');
             if (!img)
                 return null;
-            const src = img.getAttribute('src') || img.src;
+            const src = img.getAttribute('src') || '';
             const match = src.match(/[?&]pC=([^&]+)/);
             return match ? match[1] : null;
         });
@@ -108,27 +109,30 @@ async function rethusValidator(docNumber) {
             throw new Error('No se pudo extraer el valor pC del src de #imgCaptcha');
         }
         const captchaInputId = await page.evaluate((numDoc) => {
+            const asInput = (el) => el && el.tagName === 'INPUT' ? (el) : null;
             const img = document.querySelector('#imgCaptcha');
             if (img) {
                 let node = img.nextElementSibling;
                 while (node) {
-                    if (node instanceof HTMLInputElement &&
-                        (node.type === 'text' || !node.type)) {
-                        return node.id ? `#${node.id}` : `[name="${node.name}"]`;
+                    const nodeInput = asInput(node);
+                    if (nodeInput && (nodeInput.type === 'text' || !nodeInput.type)) {
+                        return nodeInput.id
+                            ? `#${nodeInput.id}`
+                            : `[name="${nodeInput.name}"]`;
                     }
-                    const inp = node.querySelector('input[type="text"], input:not([type])');
+                    const inp = (node.querySelector('input[type="text"], input:not([type])'));
                     if (inp)
                         return inp.id ? `#${inp.id}` : `[name="${inp.name}"]`;
                     node = node.nextElementSibling;
                 }
                 const parent = img.closest('tr, div, td, span');
                 if (parent) {
-                    const inp = parent.querySelector('input[type="text"], input:not([type])');
+                    const inp = (parent.querySelector('input[type="text"], input:not([type])'));
                     if (inp)
                         return inp.id ? `#${inp.id}` : `[name="${inp.name}"]`;
                 }
             }
-            const inputs = Array.from(document.querySelectorAll('input[type="text"], input:not([type])'));
+            const inputs = (Array.from(document.querySelectorAll('input[type="text"], input:not([type])')));
             for (const inp of inputs) {
                 if (inp.value !== numDoc && !inp.id.toLowerCase().includes('identificacion')) {
                     return inp.id ? '#' + inp.id : `[name="${inp.name}"]`;
@@ -192,5 +196,21 @@ async function rethusValidator(docNumber) {
         }
     }
 }
-exports.default = rethusValidator;
+if (require.main === module) {
+    const [documento] = process.argv.slice(2);
+    if (!documento) {
+        console.error('Uso: node rethus.validator.ts <medico_registro_documento>');
+        process.exit(1);
+    }
+    rethusValidator(documento)
+        .then((result) => {
+        console.log(JSON.stringify(result, null, 2));
+    })
+        .catch((error) => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(errorMessage);
+        process.exit(1);
+    });
+}
+module.exports = rethusValidator;
 //# sourceMappingURL=rethus.validator.js.map

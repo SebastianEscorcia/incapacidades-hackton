@@ -1,9 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const { chromium } = require('playwright');
-const fs = require('fs');
-const path = require('path');
-const OUTPUT_PATH = path.join(__dirname, 'eps_data_result.json');
+const playwright_1 = require("playwright");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const OUTPUT_PATH = path_1.default.join(__dirname, 'eps_data_result.json');
 const TARGET_URL = 'https://www.adres.gov.co/consulte-su-eps';
 const FORM_FRAME_URL = 'aplicaciones.adres.gov.co';
 function normalizeText(value = '') {
@@ -103,8 +106,9 @@ async function extractData(frameOrPage) {
                     if (cells.length === 2) {
                         const key = cells[0].innerText.trim();
                         const val = cells[1].innerText.trim();
-                        if (key)
+                        if (key) {
                             data.informacionBasica[key] = val;
+                        }
                     }
                 });
             }
@@ -123,7 +127,7 @@ async function adresValidator(docNumber, expectedEps = null) {
     console.log('Iniciando navegador...');
     let browser;
     try {
-        browser = await chromium.launch({
+        browser = await playwright_1.chromium.launch({
             headless: false,
             slowMo: 60,
             args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
@@ -181,7 +185,7 @@ async function adresValidator(docNumber, expectedEps = null) {
             }
         }
         const result = await extractData(resultContext);
-        fs.writeFileSync(OUTPUT_PATH, JSON.stringify(result, null, 2), 'utf-8');
+        fs_1.default.writeFileSync(OUTPUT_PATH, JSON.stringify(result, null, 2), 'utf-8');
         const validation = validateAdresResult(result, expectedEps);
         return buildResponse({
             status: validation.status,

@@ -1,14 +1,13 @@
-declare function rethusValidator(docNumber: string): Promise<{
-    status: boolean;
+export default function rethusValidator(docNumber: any): Promise<{
+    status: any;
     payload: {
-        estado: boolean;
-        mensaje: string;
-        razon: string | null;
-        documento: string;
+        estado: any;
+        mensaje: any;
+        razon: undefined;
+        documento: any;
         fuente: string;
         scrapingExitoso: boolean;
         fecha: string;
-        data: unknown;
+        data: undefined;
     };
 }>;
-export default rethusValidator;

@@ -19,5 +19,12 @@ export declare class AiGateway implements OnGatewayConnection, OnGatewayDisconne
         adres: unknown;
         finalizadoEn: string;
     }): void;
+    emitirRespuestaEps(payload: {
+        incapacidadId: string;
+        estado_eps_response: 'EN_PROCESO' | 'APROBADO' | 'GLOSA' | 'RECHAZADO' | 'REQUIERE_SOPORTE';
+        mensaje: string;
+        requiere_requerimiento: boolean;
+        finalizadoEn: string;
+    }): void;
     handlePing(client: Socket, payload: any): void;
 }

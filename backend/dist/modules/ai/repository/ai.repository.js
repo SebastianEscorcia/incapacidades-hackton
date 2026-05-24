@@ -36,6 +36,30 @@ let AiRepository = AiRepository_1 = class AiRepository {
         this.logger.log('Recuperando todos los registros crudos de la BD...');
         return Array.from(this.bdSimulada.values());
     }
+    async actualizarRespuestaEps(id, respuestaEps) {
+        const registro = this.bdSimulada.get(id);
+        if (!registro)
+            return;
+        this.bdSimulada.set(id, {
+            ...registro,
+            estado_eps_response: respuestaEps.estado_eps_response,
+            mensaje_eps_response: respuestaEps.mensaje,
+            requiere_requerimiento_eps: respuestaEps.requiere_requerimiento,
+        });
+    }
+    async obtenerResumenDashboard() {
+        const resumen = {
+            EN_PROCESO: 0,
+            APROBADO: 0,
+            GLOSA: 0,
+            RECHAZADO: 0,
+            REQUIERE_SOPORTE: 0,
+        };
+        for (const registro of this.bdSimulada.values()) {
+            resumen[registro.estado_eps_response] += 1;
+        }
+        return resumen;
+    }
 };
 exports.AiRepository = AiRepository;
 exports.AiRepository = AiRepository = AiRepository_1 = __decorate([

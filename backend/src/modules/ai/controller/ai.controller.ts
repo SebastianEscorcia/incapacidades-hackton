@@ -75,4 +75,9 @@ export class AiController {
   ) {
     return await this.aiService.obtenerTodasLasIncapacidades(documento, nombre);
   }
+
+  @Get('dashboard/resumen-estados')
+  async getDashboardResumenEstados() {
+    return await this.aiService.obtenerResumenDashboard();
+  }
 }

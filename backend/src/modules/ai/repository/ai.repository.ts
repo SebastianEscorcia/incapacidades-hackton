@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IEncryptedData } from '../../encryption/service/encryption.service';
 import { randomUUID } from 'crypto';
+import { EstadoEpsResponse, IRespuestaEpsSimulada } from '../type/ai.type';
 
 export interface IRegistroIncapacidad {
   id?: string; // Añadimos el ID opcional
@@ -10,6 +11,9 @@ export interface IRegistroIncapacidad {
   anomalias_detectadas: string[];
   fecha_procesamiento: Date;
   requiere_verificacion_rethus: boolean;
+  estado_eps_response: EstadoEpsResponse;
+  mensaje_eps_response: string;
+  requiere_requerimiento_eps: boolean;
 }
 
 @Injectable()
@@ -51,5 +55,36 @@ export class AiRepository {
   async buscarTodos(): Promise<IRegistroIncapacidad[]> {
     this.logger.log('Recuperando todos los registros crudos de la BD...');
     return Array.from(this.bdSimulada.values());
+  }
+
+  async actualizarRespuestaEps(
+    id: string,
+    respuestaEps: IRespuestaEpsSimulada,
+  ): Promise<void> {
+    const registro = this.bdSimulada.get(id);
+    if (!registro) return;
+
+    this.bdSimulada.set(id, {
+      ...registro,
+      estado_eps_response: respuestaEps.estado_eps_response,
+      mensaje_eps_response: respuestaEps.mensaje,
+      requiere_requerimiento_eps: respuestaEps.requiere_requerimiento,
+    });
+  }
+
+  async obtenerResumenDashboard(): Promise<Record<EstadoEpsResponse, number>> {
+    const resumen: Record<EstadoEpsResponse, number> = {
+      EN_PROCESO: 0,
+      APROBADO: 0,
+      GLOSA: 0,
+      RECHAZADO: 0,
+      REQUIERE_SOPORTE: 0,
+    };
+
+    for (const registro of this.bdSimulada.values()) {
+      resumen[registro.estado_eps_response] += 1;
+    }
+
+    return resumen;
   }
 }

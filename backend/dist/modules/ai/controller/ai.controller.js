@@ -35,6 +35,9 @@ let AiController = class AiController {
     async getAllIncapacidades(documento, nombre) {
         return await this.aiService.obtenerTodasLasIncapacidades(documento, nombre);
     }
+    async getDashboardResumenEstados() {
+        return await this.aiService.obtenerResumenDashboard();
+    }
 };
 exports.AiController = AiController;
 __decorate([
@@ -77,6 +80,12 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], AiController.prototype, "getAllIncapacidades", null);
+__decorate([
+    (0, common_1.Get)('dashboard/resumen-estados'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AiController.prototype, "getDashboardResumenEstados", null);
 exports.AiController = AiController = __decorate([
     (0, common_1.Controller)('ai'),
     __metadata("design:paramtypes", [ai_service_1.AiService])

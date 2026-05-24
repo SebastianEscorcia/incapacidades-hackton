@@ -20,13 +20,15 @@ const config_1 = require("@nestjs/config");
 const encryption_service_1 = require("../../encryption/service/encryption.service");
 const ai_gateway_1 = require("../gateway/ai.gateway");
 const ai_repository_1 = require("../repository/ai.repository");
-const rethus_validator_1 = __importDefault(require("../scrapping/rethus.validator"));
 const adres_validator_1 = __importDefault(require("../scrapping/adres.validator"));
+const rethus_validator_1 = __importDefault(require("../scrapping/rethus.validator"));
+const eps_ai_service_1 = require("./eps-ai.service");
 let AiService = AiService_1 = class AiService {
     encryptionService;
     configService;
     aiGateway;
     aiRepository;
+    epsAiService;
     logger = new common_1.Logger(AiService_1.name);
     genAI;
     generationConfig = {
@@ -68,11 +70,12 @@ let AiService = AiService_1 = class AiService {
       }
     }
   `;
-    constructor(encryptionService, configService, aiGateway, aiRepository) {
+    constructor(encryptionService, configService, aiGateway, aiRepository, epsAiService) {
         this.encryptionService = encryptionService;
         this.configService = configService;
         this.aiGateway = aiGateway;
         this.aiRepository = aiRepository;
+        this.epsAiService = epsAiService;
         const apiKey = this.configService.get('GEMINI_API_KEY');
         if (!apiKey) {
             this.logger.error('Falta la variable GEMINI_API_KEY. Configura una API key valida en el archivo .env.');
@@ -141,9 +144,13 @@ let AiService = AiService_1 = class AiService {
             anomalias_detectadas: resultadoIA.anomalias_detectadas,
             fecha_procesamiento: new Date(),
             requiere_verificacion_rethus: resultadoIA.estado === 'APROBADO',
+            estado_eps_response: 'EN_PROCESO',
+            mensaje_eps_response: 'Pendiente de simulacion EPS.',
+            requiere_requerimiento_eps: false,
         };
         const idGenerado = await this.aiRepository.guardar(registroIncapacidad);
         const scrapingResultados = await this.ejecutarValidacionesExternas(idGenerado, resultadoIA.datos_extraidos);
+        const respuestaEps = await this.epsAiService.simularRespuestaEps(idGenerado, resultadoIA, scrapingResultados);
         return {
             id: idGenerado,
             mensaje: 'Procesamiento completado con éxito',
@@ -151,6 +158,7 @@ let AiService = AiService_1 = class AiService {
             requiere_accion_manual: resultadoIA.estado === 'REVISIÓN MANUAL',
             alertas: resultadoIA.anomalias_detectadas,
             scraping: scrapingResultados,
+            eps_response: respuestaEps,
         };
     }
     async obtenerIncapacidadParaRevision(id) {
@@ -176,6 +184,9 @@ let AiService = AiService_1 = class AiService {
             anomalias_detectadas: registro.anomalias_detectadas,
             fecha_procesamiento: registro.fecha_procesamiento,
             requiere_verificacion_rethus: registro.requiere_verificacion_rethus,
+            estado_eps_response: registro.estado_eps_response,
+            mensaje_eps_response: registro.mensaje_eps_response,
+            requiere_requerimiento_eps: registro.requiere_requerimiento_eps,
             datos_extraidos: datosDesencriptados
         };
     }
@@ -199,6 +210,9 @@ let AiService = AiService_1 = class AiService {
                 anomalias_detectadas: registro.anomalias_detectadas,
                 fecha_procesamiento: registro.fecha_procesamiento,
                 requiere_verificacion_rethus: registro.requiere_verificacion_rethus,
+                estado_eps_response: registro.estado_eps_response,
+                mensaje_eps_response: registro.mensaje_eps_response,
+                requiere_requerimiento_eps: registro.requiere_requerimiento_eps,
                 datos_extraidos: datosDesencriptados,
             };
         });
@@ -293,6 +307,21 @@ let AiService = AiService_1 = class AiService {
         });
         return { rethus, adres };
     }
+    async obtenerResumenDashboard() {
+        const resumen = await this.aiRepository.obtenerResumenDashboard();
+        return {
+            en_proceso: resumen.EN_PROCESO,
+            glosa: resumen.GLOSA,
+            rechazado: resumen.RECHAZADO,
+            requiere_soporte: resumen.REQUIERE_SOPORTE,
+            aprobado: resumen.APROBADO,
+            total: resumen.EN_PROCESO +
+                resumen.GLOSA +
+                resumen.RECHAZADO +
+                resumen.REQUIERE_SOPORTE +
+                resumen.APROBADO,
+        };
+    }
 };
 exports.AiService = AiService;
 exports.AiService = AiService = AiService_1 = __decorate([
@@ -300,6 +329,7 @@ exports.AiService = AiService = AiService_1 = __decorate([
     __metadata("design:paramtypes", [encryption_service_1.EncryptionService,
         config_1.ConfigService,
         ai_gateway_1.AiGateway,
-        ai_repository_1.AiRepository])
+        ai_repository_1.AiRepository,
+        eps_ai_service_1.EpsAiService])
 ], AiService);
 //# sourceMappingURL=ai.service.js.map
