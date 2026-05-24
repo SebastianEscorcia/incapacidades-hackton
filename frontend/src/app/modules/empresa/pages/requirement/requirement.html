@@ -28,7 +28,11 @@
       </div>
       <p-button type="button" [label]="'empresa.requirement.addField' | translate" icon="pi pi-plus" severity="secondary" class="p-button-sm self-start" (onClick)="addField()" />
       <p-fileUpload mode="basic" [chooseLabel]="'empresa.requirement.attachSupport' | translate" [multiple]="true" (onSelect)="onFilesSelected($event)" />
-      <div class="workflow-actions"><p-button type="submit" [label]="'empresa.requirement.submitRequirement' | translate" icon="pi pi-send" [disabled]="form.invalid" /></div>
+      <div class="workflow-actions">
+        <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+        <p-button type="submit" [label]="'empresa.requirement.submitRequirement' | translate" icon="pi pi-send" [disabled]="form.invalid" />
+        <p-button type="button" [label]="'empresa.requirement.allInOrder' | translate" icon="pi pi-arrow-right" severity="secondary" (onClick)="skipStep()" />
+      </div>
     </form>
   </p-card>
 </section>

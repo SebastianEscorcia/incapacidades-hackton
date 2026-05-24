@@ -1,0 +1,60 @@
+<section class="workflow-page">
+  <header class="workflow-header">
+    <div class="mb-3">
+      <a routerLink="/empresa/empresas" class="inline-flex items-center gap-2 text-sm font-medium no-underline" style="color: var(--text-color-secondary); transition: color 0.2s; cursor: pointer;" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--text-color-secondary)'">
+        <i class="pi pi-arrow-left"></i>
+        <span>{{ 'common.back' | translate }}</span>
+      </a>
+    </div>
+    <span class="workflow-eyebrow">{{ 'empresa.auditoria.eyebrow' | translate }}</span>
+    <h1 class="workflow-title">{{ companyName() }}</h1>
+    <p class="workflow-subtitle">{{ 'empresa.auditoria.subtitle' | translate }}</p>
+  </header>
+
+
+  @if (!sessions().length) {
+    <p-card styleClass="workflow-card">
+      <p class="text-sm workflow-text-muted">{{ 'empresa.auditoria.empty' | translate }}</p>
+    </p-card>
+  } @else {
+    <div class="grid gap-4 xl:grid-cols-3">
+      <p-card [header]="'empresa.auditoria.sessions' | translate" styleClass="workflow-card xl:col-span-1">
+        <ul class="grid gap-2">
+          @for (session of sessions(); track session.id) {
+            <li>
+              <button
+                type="button"
+                class="auditoria-session-btn"
+                [class.auditoria-session-btn--active]="selectedSession()?.id === session.id"
+                (click)="selectSession(session)"
+              >
+                <strong>{{ session.startedAt | date: 'short' }}</strong>
+                <span class="block text-sm workflow-text-muted">
+                  {{ stageLabel(session.lastStage) | translate }} · {{ session.events.length }} eventos
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      </p-card>
+
+      @if (selectedSession(); as session) {
+        <div class="xl:col-span-2">
+          <p-card [header]="'empresa.auditoria.timeline' | translate" styleClass="workflow-card">
+            <p-timeline [value]="session.events" align="left">
+              <ng-template pTemplate="content" let-event>
+                <article class="workflow-card p-4 mb-3">
+                  <p-tag [value]="stageLabel(event.stage) | translate" severity="info" />
+                  <small class="ml-2 workflow-text-muted">{{ event.timestamp | date: 'short' }}</small>
+                  <h2 class="workflow-event-title">{{ event.title | translateContent }}</h2>
+                  <p class="text-sm workflow-text-muted">{{ event.description | translateContent }}</p>
+                  <small class="workflow-text-accent">{{ 'workflow.timeline.actor' | translate }}: {{ event.actor | translateContent }}</small>
+                </article>
+              </ng-template>
+            </p-timeline>
+          </p-card>
+        </div>
+      }
+    </div>
+  }
+</section>

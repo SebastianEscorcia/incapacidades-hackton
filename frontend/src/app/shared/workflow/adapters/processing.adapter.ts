@@ -1,6 +1,6 @@
 import { AiResultStatus, IntakeValidationStatus } from '../types';
 import { ManualReviewPayload } from '../types/payloads/manual-review.payload';
-import { AiResultSummary, AiValidationMetric, PreprocessingTask } from '../types/workflow.types';
+import { AiResultSummary, AiValidationMetric, PreprocessingTask, PreprocessingTaskState } from '../types/workflow.types';
 import { ApiRecord, apiArray, apiBoolean, apiNumber, apiString } from './api.helpers';
 
 export class ProcessingAdapter {
@@ -8,9 +8,17 @@ export class ProcessingAdapter {
     return apiArray(raw, 'tasks').map((item, index) => ({
       id: apiString(item, 'id', `task-${index}`),
       label: apiString(item, 'label'),
-      completed: apiBoolean(item, 'completed'),
+      state: this.toTaskState(item),
       detail: apiString(item, 'detail') || undefined,
     }));
+  }
+
+  private static toTaskState(item: ApiRecord): PreprocessingTaskState {
+    const state = apiString(item, 'state').toLowerCase();
+    if (state === 'completed' || state === 'failed' || state === 'pending') {
+      return state as PreprocessingTaskState;
+    }
+    return apiBoolean(item, 'completed') ? 'completed' : 'pending';
   }
 
   static toAiMetrics(raw: ApiRecord): AiValidationMetric[] {

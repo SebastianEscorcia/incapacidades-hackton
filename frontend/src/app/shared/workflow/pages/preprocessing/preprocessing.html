@@ -8,6 +8,16 @@
     <h1 class="workflow-title">{{ 'workflow.preprocessing.title' | translate }}</h1>
   </header>
 
+  @if (processingFailed()) {
+    <div class="workflow-failure-banner mb-4">
+      <i class="pi pi-times-circle"></i>
+      <div>
+        <strong>{{ 'workflow.preprocessing.processingFailedTitle' | translate }}</strong>
+        <p class="mt-1 text-sm">{{ motivo() ?? ('workflow.preprocessing.processingFailedDefault' | translate) }}</p>
+      </div>
+    </div>
+  }
+
   @if (loading()) {
     <p-skeleton height="16rem" />
   } @else {
@@ -16,13 +26,14 @@
         <article class="workflow-card p-4">
           <div class="flex items-center justify-between">
             <h2 class="workflow-card-title">{{ task.label | translateContent }}</h2>
-            <i [class]="task.completed ? 'pi pi-check-circle workflow-check-icon--ok' : 'pi pi-spin pi-spinner workflow-spinner-icon'"></i>
+            <i [class]="taskIcon(task)"></i>
           </div>
           @if (task.detail) { <p class="mt-2 text-sm workflow-text-muted">{{ task.detail | translateContent }}</p> }
         </article>
       }
     </div>
-    <div class="workflow-actions">
+    <div class="workflow-actions flex gap-3">
+      <p-button [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
       <p-button [label]="'workflow.preprocessing.confirm' | translate" icon="pi pi-check" (onClick)="confirmStage()" />
     </div>
   }

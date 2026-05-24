@@ -5,7 +5,7 @@ import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { ValidationCheck, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { FormErroresMsg } from '@/core/services/form-errors.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
@@ -19,7 +19,7 @@ import { I18nService } from '@/core/i18n/i18n.service';
   styleUrl: './institutional-validation.scss',
 })
 export class InstitutionalValidationPage implements OnInit {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
   private readonly confirmation = inject(ConfirmationService);
@@ -61,12 +61,12 @@ export class InstitutionalValidationPage implements OnInit {
       accept: async () => {
         this.loading.set(true);
         try {
-          await this.workflow.confirmStage(this.stage);
-          this.messages.add({ severity: continueProcess ? 'success' : 'warn', summary: this.i18n.t('workflow.institutionalValidation.success') });
-          if (!continueProcess) {
+          if (continueProcess && this.allPassed()) {
+            await this.workflow.confirmStage(this.stage);
+            this.messages.add({ severity: 'success', summary: this.i18n.t('workflow.institutionalValidation.success') });
+          } else {
             this.formErrors.showCustomError(this.i18n.t('workflow.institutionalValidation.flowInterrupted'));
-            this.flow.resetFlow();
-            this.flow.startFlow();
+            this.restartToIntake();
           }
         } catch (err) {
           this.messages.add({ severity: 'error', summary: this.i18n.t('workflow.institutionalValidation.error') });
@@ -75,5 +75,16 @@ export class InstitutionalValidationPage implements OnInit {
         }
       },
     });
+  }
+
+  private restartToIntake(): void {
+    const { companyId, company } = this.flow.activeCase();
+    if (!companyId || !company) return;
+    this.flow.resetFlow(companyId, company);
+    this.flow.startFlow();
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

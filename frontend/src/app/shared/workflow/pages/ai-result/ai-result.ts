@@ -5,7 +5,7 @@ import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { AiResultStatus, AiResultSummary, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
 
@@ -17,7 +17,7 @@ import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
   styleUrl: './ai-result.scss',
 })
 export class AiResultPage implements OnInit {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
 
@@ -45,7 +45,14 @@ export class AiResultPage implements OnInit {
   }
 
   protected retryFlow(): void {
-    this.flow.resetFlow();
+    const { companyId, company } = this.flow.activeCase();
+    if (companyId && company) {
+      this.flow.resetFlow(companyId, company);
+    }
     this.flow.startFlow();
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

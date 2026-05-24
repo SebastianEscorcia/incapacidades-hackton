@@ -1,7 +1,7 @@
 <div class="tracker-wrap">
   <div class="tracker" role="list" aria-label="Estado del trámite">
     @for (step of steps; track step.stage; let i = $index; let last = $last) {
-    <div class="tracker-item" role="listitem" [class]="stepState(i)">
+    <div class="tracker-item" role="listitem" [class]="stepState(i)" [class.clickable]="canClick(step)" (click)="clickStep(step)">
       <div class="tracker-marker" [attr.aria-current]="stepState(i) === 'active' ? 'step' : null">
         <i [class]="markerIcon(i, step.icon)"></i>
       </div>

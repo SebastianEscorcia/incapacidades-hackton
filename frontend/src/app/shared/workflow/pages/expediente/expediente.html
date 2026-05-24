@@ -15,7 +15,10 @@
       </div>
       <label class="flex items-center gap-3"><p-checkbox formControlName="includeAnnexes" [binary]="true" /><span>{{ 'workflow.expediente.includeAnnexes' | translate }}</span></label>
       <textarea pTextarea formControlName="auditNotes" rows="3" class="w-full" [placeholder]="'workflow.expediente.auditNotes' | translate"></textarea>
-      <div class="workflow-actions"><p-button type="submit" [label]="'workflow.expediente.consolidate' | translate" icon="pi pi-folder" [disabled]="form.invalid" /></div>
+      <div class="workflow-actions flex gap-3">
+        <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+        <p-button type="submit" [label]="'workflow.expediente.consolidate' | translate" icon="pi pi-folder" [disabled]="form.invalid" />
+      </div>
     </form>
   </p-card>
 </section>

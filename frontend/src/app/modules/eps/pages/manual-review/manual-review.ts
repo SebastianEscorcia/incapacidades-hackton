@@ -6,7 +6,7 @@ import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { FormManualReview } from './form-manual-review';
 import { FormErroresMsg } from '@/core/services/form-errors.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
@@ -20,7 +20,7 @@ import { I18nService } from '@/core/i18n/i18n.service';
   styleUrl: './manual-review.scss',
 })
 export class ManualReviewPage {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
   private readonly confirmation = inject(ConfirmationService);
@@ -54,17 +54,16 @@ export class ManualReviewPage {
           try {
             await this.workflow.submitManualReview(model);
             this.messages.add({ severity: 'success', summary: this.i18n.t('eps.manualReview.success') });
-            if (model.requiresCompanyAction) {
-              this.form.setErrors({ flowInterrupted: true });
-              this.formErrors.getErroresForm(this.form);
-              this.flow.resetFlow();
-              this.flow.startFlow();
-            }
+            this.flow.navigateNext(this.stage);
           } catch (err) {
             this.messages.add({ severity: 'error', summary: this.i18n.t('eps.manualReview.error') });
           }
         })();
       },
     });
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

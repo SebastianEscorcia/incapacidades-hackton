@@ -29,20 +29,60 @@
                 font-weight: 700;
                 padding: 1rem 0 0.5rem 0;
                 color: var(--v-menuitem-text-color-secondary);
-
-                .active-route {
-                    font-weight: 700;
-                }
             }
 
             > a {
-                display: none;
+                display: flex;
+                align-items: center;
+                outline: 0 none;
+                position: relative;
+                color: var(--v-menuitem-text-color);
+                padding: 0.5rem;
+                margin-bottom: 0.25rem;
+                border-radius: var(--border-radius);
+                line-height: 1;
+                transition:
+                    background-color var(--transition-duration),
+                    color var(--transition-duration),
+                    border-color var(--transition-duration);
+                cursor: pointer;
+                text-decoration: none;
+
+                .layout-menuitem-icon {
+                    margin-right: 0.5rem;
+                }
+
+                &.active-route {
+                    font-weight: 700;
+                    color: var(--primary-color) !important;
+                    background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-card));
+                    border-left: 3px solid var(--primary-color);
+                    padding-left: calc(0.5rem - 3px);
+
+                    .layout-menuitem-icon {
+                        color: var(--primary-color) !important;
+                    }
+                }
+
+                &:hover {
+                    background: var(--v-menuitem-hover-bg);
+                }
             }
         }
 
         li {
             &.active-menuitem {
                 > a {
+                    font-weight: 700;
+                    color: var(--primary-color) !important;
+                    background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-card));
+                    border-left: 3px solid var(--primary-color);
+                    padding-left: calc(0.5rem - 3px);
+
+                    .layout-menuitem-icon {
+                        color: var(--primary-color) !important;
+                    }
+
                     .layout-submenu-toggler {
                         transform: rotate(-180deg);
                     }

@@ -34,7 +34,10 @@
       </div>
       <input pInputText formControlName="referenceCode" [placeholder]="'eps.radicacion.referenceCode' | translate" class="w-full" />
       <textarea pTextarea formControlName="notes" rows="3" class="w-full" [placeholder]="'eps.radicacion.notes' | translate"></textarea>
-      <div class="workflow-actions"><p-button type="submit" [label]="'eps.radicacion.fileBtn' | translate" icon="pi pi-send" [disabled]="form.invalid" /></div>
+      <div class="workflow-actions flex gap-3">
+        <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+        <p-button type="submit" [label]="'eps.radicacion.fileBtn' | translate" icon="pi pi-send" [disabled]="form.invalid" />
+      </div>
     </form>
   </p-card>
 </section>

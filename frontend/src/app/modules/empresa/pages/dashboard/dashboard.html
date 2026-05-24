@@ -1,8 +1,19 @@
 <section class="workflow-page">
-  <header class="workflow-header">
-    <span class="workflow-eyebrow">{{ 'empresa.dashboard.eyebrow' | translate }}</span>
-    <h1 class="workflow-title">{{ 'empresa.dashboard.title' | translate }}</h1>
-    <p class="workflow-subtitle">{{ 'empresa.dashboard.subtitle' | translate }}</p>
+  <header class="workflow-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <span class="workflow-eyebrow">{{ 'empresa.dashboard.eyebrow' | translate }}</span>
+      <h1 class="workflow-title">{{ 'empresa.dashboard.title' | translate }}</h1>
+      <p class="workflow-subtitle">{{ 'empresa.dashboard.subtitle' | translate }}</p>
+    </div>
+    <div class="flex items-center">
+      <p-button
+        [label]="'menu.companiesList' | translate"
+        icon="pi pi-building"
+        routerLink="/empresa/empresas"
+        severity="primary"
+        styleClass="shadow-sm"
+      />
+    </div>
   </header>
 
   @if (loading) {
@@ -51,30 +62,6 @@
         </ul>
       </p-card>
     </div>
-
-    <p-card [header]="'empresa.dashboard.selectCompanyTitle' | translate" styleClass="workflow-card mt-4">
-      <p-table [value]="companies" styleClass="text-sm">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>{{ 'common.id' | translate }}</th>
-            <th>{{ 'common.name' | translate }}</th>
-            <th>{{ 'common.sector' | translate }}</th>
-            <th>{{ 'common.identification' | translate }}</th>
-            <th>{{ 'common.action' | translate }}</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-company>
-          <tr>
-            <td><p-tag [value]="company.id" severity="info" /></td>
-            <td><strong>{{ company.name }}</strong></td>
-            <td>{{ company.sector | translateContent }}</td>
-            <td>{{ company.ruc }}</td>
-            <td>
-              <p-button [label]="'empresa.dashboard.initCase' | translate" icon="pi pi-arrow-right" class="p-button-sm" (onClick)="selectCompany(company.id, company.name)" />
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-card>
   }
 </section>
+

@@ -6,12 +6,15 @@ import { MenuItem } from 'primeng/api';
     selector: 'app-sidebar',
     standalone: true,
     imports: [AppMenu],
-    template: `<app-menu [model]="this.menu()" class="layout-sidebar"></app-menu>`,
+    template: `
+        <div class="layout-sidebar">
+            <app-menu [model]="menu()" />
+        </div>
+    `,
 })
 export class AppSidebar {
     el = inject(ElementRef);
 
     @ViewChild(AppMenu) appMenu!: AppMenu;
-    menu = input<MenuItem[]>([])
-
+    menu = input<MenuItem[]>([]);
 }

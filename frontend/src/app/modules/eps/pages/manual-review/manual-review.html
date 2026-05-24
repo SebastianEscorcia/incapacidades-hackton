@@ -27,7 +27,10 @@
         <label for="decisionNotes" class="workflow-field-label">{{ 'eps.manualReview.decisionNotes' | translate }}</label>
         <textarea id="decisionNotes" pTextarea formControlName="decisionNotes" rows="4" class="mt-1 w-full"></textarea>
       </div>
-      <div class="workflow-actions"><p-button type="submit" [label]="'eps.manualReview.registerReview' | translate" icon="pi pi-check" [disabled]="form.invalid" /></div>
+      <div class="workflow-actions">
+        <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+        <p-button type="submit" [label]="'eps.manualReview.registerReview' | translate" icon="pi pi-check" [disabled]="form.invalid" />
+      </div>
     </form>
   </p-card>
 </section>

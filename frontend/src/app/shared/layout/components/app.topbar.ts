@@ -24,7 +24,7 @@ import { LanguageSwitcher } from '@/shared/components/language-switcher/language
         <div class="layout-topbar">
             <a class="app-logo" routerLink="/">
                 <img [alt]="'topbar.logoAlt' | translate" [src]="imgLogo" />
-                <span class="app-name">Verona</span>
+                <span class="app-name">{{environment.app_name}}</span>
             </a>
 
             <button #menubutton class="topbar-menubutton p-link" type="button" (click)="onMenuButtonClick()">

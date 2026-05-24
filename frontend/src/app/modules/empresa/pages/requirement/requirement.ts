@@ -6,7 +6,7 @@ import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { RequirementAction, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { FormRequirement } from './form-requirement';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { I18nService } from '@/core/i18n/i18n.service';
@@ -19,7 +19,7 @@ import { I18nService } from '@/core/i18n/i18n.service';
   styleUrl: './requirement.scss',
 })
 export class RequirementPage {
-  private readonly flow = inject(WorkflowFlowMockService);
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
   private readonly confirmation = inject(ConfirmationService);
@@ -52,6 +52,10 @@ export class RequirementPage {
     this.form.setFiles(event.currentFiles);
   }
 
+  skipStep(): void {
+    this.flow.navigateNext(this.stage);
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -65,11 +69,16 @@ export class RequirementPage {
           try {
             await this.workflow.submitRequirement(this.form.getModel());
             this.messages.add({ severity: 'success', summary: this.i18n.t('empresa.requirement.success') });
+            this.flow.navigateNext(this.stage);
           } catch (err) {
             this.messages.add({ severity: 'error', summary: this.i18n.t('empresa.requirement.error') });
           }
         })();
       },
     });
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

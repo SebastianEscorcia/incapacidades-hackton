@@ -15,7 +15,8 @@
         </li>
       }
     </ul>
-    <div class="workflow-actions">
+    <div class="workflow-actions flex gap-3">
+      <p-button [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
       <p-button [label]="'workflow.institutionalValidation.continue' | translate" severity="success" (onClick)="confirm(true)" [disabled]="!allPassed()" />
       <p-button [label]="'workflow.institutionalValidation.generateIncident' | translate" severity="warn" (onClick)="confirm(false)" [disabled]="allPassed()" />
     </div>

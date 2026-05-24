@@ -6,7 +6,9 @@ export default [
     loadComponent: () => import('./layout/empresa.layout').then((m) => m.EmpresaLayout),
     children: [
       { path: '', loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardPage) },
+      { path: 'empresas', loadComponent: () => import('./pages/empresas/empresas').then((m) => m.EmpresasPage) },
       { path: 'intake', loadComponent: () => import('./pages/intake/intake').then((m) => m.IntakePage) },
+      { path: 'auditoria/:companyId', loadComponent: () => import('./pages/auditoria/auditoria').then((m) => m.AuditoriaPage) },
       { path: 'requirement', loadComponent: () => import('./pages/requirement/requirement').then((m) => m.RequirementPage) },
       { path: 'flujo', loadChildren: () => import('@shared/workflow/shared-workflow.routes') },
     ],

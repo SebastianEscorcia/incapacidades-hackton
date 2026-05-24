@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { PreprocessingTask, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
+import { AiRealtimeService } from '@sharedWorkflow/services/ai-realtime.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
-import { WorkflowFlowMockService } from '@sharedWorkflow/mocks/workflow-flow.mock.service';
+import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
 import { TranslateContentPipe } from '@/core/i18n/translate-content.pipe';
 import { I18nService } from '@/core/i18n/i18n.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'preprocessing-page',
@@ -17,35 +19,58 @@ import { I18nService } from '@/core/i18n/i18n.service';
   templateUrl: './preprocessing.html',
   styleUrl: './preprocessing.scss',
 })
-export class PreprocessingPage implements OnInit {
-  private readonly flow = inject(WorkflowFlowMockService);
+export class PreprocessingPage implements OnInit, OnDestroy {
+  private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
   private readonly workflow = inject(WorkflowService);
+  private readonly realtime = inject(AiRealtimeService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
   private readonly i18n = inject(I18nService);
+  private scrapingSubscription?: Subscription;
 
   protected readonly stage = WorkflowStage.Preprocessing;
   protected loading = signal(true);
-  protected tasks=signal<PreprocessingTask[] >([]);
+  protected processingFailed = signal(false);
+  protected motivo = signal<string | undefined>(undefined);
+  protected tasks = signal<PreprocessingTask[]>([]);
 
   ngOnInit(): void {
     this.flow.ensureAccess(this.stage);
-    this.loadTasks();
+    this.workflow.connectRealtime();
+    void this.loadTasks();
+
+    this.scrapingSubscription = this.realtime.scrapingCompletado$.subscribe((event) => {
+      const activeId = this.flow.activeCase().primaryIncapacidadId;
+      const eventId = event.incapacidadId ?? event.id;
+      if (!activeId || eventId !== activeId) return;
+      void this.loadTasks();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.scrapingSubscription?.unsubscribe();
   }
 
   private async loadTasks(): Promise<void> {
     this.loading.set(true);
     try {
-      console.log('Cargando tareas de preprocesamiento...');
-      const response= await this.workflow.getPreprocessingTasks();
+      const response = await this.workflow.getPreprocessingTasks();
       this.tasks.set(response);
+      const failedTask = response.find((task) => task.state === 'failed' && task.id === '1');
+      this.processingFailed.set(Boolean(failedTask));
+      this.motivo.set(failedTask?.detail);
     } catch (err) {
       this.messages.add({ severity: 'error', summary: this.i18n.t('workflow.preprocessing.loadError') });
     } finally {
-      console.log('Tareas de preprocesamiento cargadas:', this.tasks);
       this.loading.set(false);
     }
+  }
+
+  taskIcon(task: PreprocessingTask): string {
+    if (task.state === 'completed') return 'pi pi-check-circle workflow-check-icon--ok';
+    if (task.state === 'failed') return 'pi pi-times-circle workflow-check-icon--fail';
+    return 'pi pi-spin pi-spinner workflow-spinner-icon';
   }
 
   confirmStage(): void {
@@ -64,5 +89,9 @@ export class PreprocessingPage implements OnInit {
         }
       },
     });
+  }
+
+  protected goBack(): void {
+    this.flow.navigateBack(this.stage);
   }
 }

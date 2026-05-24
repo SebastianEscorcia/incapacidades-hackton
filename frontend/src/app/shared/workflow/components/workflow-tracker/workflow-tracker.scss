@@ -101,3 +101,12 @@
     font-size: 0.75rem;
   }
 }
+
+.tracker-item.clickable {
+  cursor: pointer;
+
+  &:hover .tracker-marker {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 20%, transparent);
+  }
+}
