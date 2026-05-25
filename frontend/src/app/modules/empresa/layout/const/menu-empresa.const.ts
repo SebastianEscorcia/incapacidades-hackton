@@ -13,4 +13,10 @@ export const menuEmpresa: MenuItem[] = [
     routerLink: ['/empresa/empresas'],
     routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
   },
+  {
+    label: 'menu.audit',
+    icon: 'pi pi-history',
+    routerLink: ['/empresa/auditoria'],
+    routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+  },
 ];

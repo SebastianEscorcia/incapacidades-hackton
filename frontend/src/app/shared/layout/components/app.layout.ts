@@ -1,4 +1,4 @@
-import { Component, effect, input, OnDestroy, Renderer2, ViewChild } from '@angular/core';
+import { Component, effect, inject, input, OnDestroy, Renderer2, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
@@ -8,9 +8,10 @@ import { LayoutService, TabCloseEvent } from '../service/layout.service';
 import { AppConfigurator } from './app.configurator';
 import { AppBreadcrumb } from './app.breadcrumb';
 import { AppSidebar } from "./app.sidebar";
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { WorkflowTracker } from '@shared/workflow/components/workflow-tracker/workflow-tracker';
 import { AiRealtimeService } from '@shared/workflow/services/ai-realtime.service';
+import { AiNotificationCenterService } from '@shared/workflow/services/ai-notification-center.service';
 
 @Component({
     selector: 'app-layout',
@@ -30,6 +31,30 @@ import { AiRealtimeService } from '@shared/workflow/services/ai-realtime.service
                                 <workflow-tracker />
                             </div>
                         }
+                        <div class="workflow-card p-3 mb-3">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <strong>Notificaciones IA</strong>
+                                <div class="flex items-center gap-2">
+                                    <span class="workflow-text-muted text-sm">No leídas: {{ unreadCount() }}</span>
+                                    <button class="p-button p-button-text p-button-sm" (click)="markAllNotificationsAsRead()">Marcar leídas</button>
+                                </div>
+                            </div>
+                            @if (!notifications().length) {
+                                <p class="text-sm workflow-text-muted">Sin notificaciones aún.</p>
+                            } @else {
+                                <ul class="grid gap-2 max-h-64 overflow-auto">
+                                    @for (item of notifications(); track item.id) {
+                                        <li class="workflow-list-item" [class.opacity-70]="item.read">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <strong>{{ item.title }}</strong>
+                                                <small class="workflow-text-muted">{{ item.timestamp | date:'short' }}</small>
+                                            </div>
+                                            <p class="text-sm">{{ item.message }}</p>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
                         <router-outlet></router-outlet>
                         <div app-footer></div>
                     </div>
@@ -40,9 +65,15 @@ import { AiRealtimeService } from '@shared/workflow/services/ai-realtime.service
     `,
 })
 export class AppLayout implements OnDestroy {
+    private readonly notificationCenter = inject(AiNotificationCenterService);
+    private readonly messageService = inject(MessageService);
+
     overlayMenuOpenSubscription: Subscription;
     menu = input<MenuItem[]>([])
     showWorkflowTracker = input(false)
+    notifications = this.notificationCenter.items;
+    unreadCount = this.notificationCenter.unreadCount;
+    private aiSubscriptions: Subscription[] = [];
 
     shouldShowTracker(): boolean {
         if (!this.showWorkflowTracker()) return false;
@@ -88,6 +119,8 @@ export class AppLayout implements OnDestroy {
             this.hideMenu();
             this.syncWorkflowWebSocket();
         });
+
+        this.bindAiNotifications();
 
         this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
             setTimeout(() => {
@@ -207,5 +240,54 @@ export class AppLayout implements OnDestroy {
         if (this.showWorkflowTracker()) {
             this.aiRealtime.disconnect();
         }
+
+        this.aiSubscriptions.forEach((subscription) => subscription.unsubscribe());
+    }
+
+    markAllNotificationsAsRead(): void {
+        this.notificationCenter.markAllAsRead();
+    }
+
+    private bindAiNotifications(): void {
+        this.aiSubscriptions.push(
+            this.aiRealtime.alertaFraude$.subscribe((event) => {
+                const entry = this.notificationCenter.push({
+                    title: 'Alerta de fraude',
+                    message: event.mensaje || 'Se detectaron anomalías en el documento.',
+                    severity: 'danger',
+                });
+                this.messageService.add({
+                    severity: 'error',
+                    summary: entry.title,
+                    detail: entry.message,
+                });
+            }),
+            this.aiRealtime.scrapingCompletado$.subscribe((event) => {
+                const entry = this.notificationCenter.push({
+                    title: 'Validación documental completada',
+                    message: `RETHUS y ADRES finalizados para ${event.incapacidadId ?? event.id}.`,
+                    severity: 'info',
+                    incapacidadId: event.incapacidadId ?? event.id,
+                });
+                this.messageService.add({
+                    severity: 'info',
+                    summary: entry.title,
+                    detail: entry.message,
+                });
+            }),
+            this.aiRealtime.epsResponseCompletada$.subscribe((event) => {
+                const entry = this.notificationCenter.push({
+                    title: 'Respuesta EPS generada',
+                    message: `${event.estadoEpsResponse}: ${event.mensaje || 'Sin mensaje adicional.'}`,
+                    severity: event.estadoEpsResponse === 'rejected' ? 'warn' : 'success',
+                    incapacidadId: event.incapacidadId,
+                });
+                this.messageService.add({
+                    severity: entry.severity === 'warn' ? 'warn' : 'success',
+                    summary: entry.title,
+                    detail: entry.message,
+                });
+            }),
+        );
     }
 }

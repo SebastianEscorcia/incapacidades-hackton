@@ -4,6 +4,9 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '@environments/environment';
 import { AiIncapacidadAdapter } from '../adapters/ai-incapacidad.adapter';
 import {
+  DashboardEstadosEpsSummary,
+  EpsResponseInfo,
+  EpsSimulationRequest,
   FraudeAlerta,
   IncapacidadDetail,
   IncapacidadListFilters,
@@ -83,24 +86,40 @@ export class AiIncapacidadService {
     }
   }
 
-  async getAlertas(): Promise<FraudeAlerta[]> {
+  async getDashboardResumenEstados(): Promise<DashboardEstadosEpsSummary> {
     try {
-      const raw = await firstValueFrom(this.http.get<ApiRecord | ApiRecord[]>(`${this.baseUrl}/alertas`));
-      return AiIncapacidadAdapter.toFraudeAlertas(Array.isArray(raw) ? { alertas: raw } : raw);
+      const raw = await firstValueFrom(this.http.get<ApiRecord>(`${this.baseUrl}/dashboard/resumen-estados`));
+      return AiIncapacidadAdapter.toDashboardEstadosEpsSummary(raw);
     } catch (error) {
       throw this.toApiError(error);
     }
   }
 
-  async verificarRethus(registroMedico: string): Promise<RethusVerificacion> {
+  async simularRespuestaEps(payload: EpsSimulationRequest): Promise<EpsResponseInfo> {
     try {
       const raw = await firstValueFrom(
-        this.http.get<ApiRecord>(`${this.baseUrl}/rethus/verificar/${encodeURIComponent(registroMedico)}`),
+        this.http.post<ApiRecord>(`${environment.apiUrl}/eps-ai/simular-respuesta`, payload),
       );
-      return AiIncapacidadAdapter.toRethus(raw);
+      const epsResponse = AiIncapacidadAdapter.toEpsResponse(raw);
+      if (!epsResponse) {
+        throw new AiApiError('La simulación EPS no retornó un resultado válido.', 500);
+      }
+      return epsResponse;
     } catch (error) {
       throw this.toApiError(error);
     }
+  }
+
+  async getAlertas(): Promise<FraudeAlerta[]> {
+    throw new AiApiError('Endpoint /ai/alertas no está disponible en backend.', 501);
+  }
+
+  async verificarRethus(registroMedico: string): Promise<RethusVerificacion> {
+    void registroMedico;
+    throw new AiApiError(
+      'Endpoint /ai/rethus/verificar no está disponible; RETHUS se valida dentro de /ai/upload-incapacidad.',
+      501,
+    );
   }
 
   async waitUntilProcessed(

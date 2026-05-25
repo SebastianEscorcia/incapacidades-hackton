@@ -36,6 +36,7 @@ export enum AiResultStatus {
 }
 
 export enum EpsResponseStatus {
+  InProcess = 'en_proceso',
   Approved = 'approved',
   Glosa = 'glosa',
   Rejected = 'rejected',

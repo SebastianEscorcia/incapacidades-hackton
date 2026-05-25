@@ -1,6 +1,9 @@
 import {
   AiBackendEstado,
   AdresVerificacion,
+  DashboardEstadosEpsSummary,
+  EpsResponseCompletedEvent,
+  EpsResponseInfo,
   FraudeAlerta,
   IncapacidadDetail,
   IncapacidadExtractedData,
@@ -11,7 +14,7 @@ import {
   ScrapingValidationEntry,
   AiScrapingCompletedEvent,
 } from '../types/ai.types';
-import { AiResultStatus, IntakeValidationStatus } from '../types/workflow.enums';
+import { AiResultStatus, EpsResponseStatus, IntakeValidationStatus } from '../types/workflow.enums';
 import { AiValidationMetric, AiResultSummary, ValidationCheck, PreprocessingTask } from '../types/workflow.types';
 import { IntakeFileResponse } from '../types/responses/intake.response';
 import { DocumentFileType } from '../types/workflow.enums';
@@ -26,6 +29,16 @@ export class AiIncapacidadAdapter {
     return AiResultStatus.ManualReview;
   }
 
+  static mapEstadoEps(raw: string): EpsResponseStatus {
+    const normalized = raw.trim().toUpperCase();
+    if (normalized === 'EN_PROCESO') return EpsResponseStatus.InProcess;
+    if (normalized === 'APROBADO') return EpsResponseStatus.Approved;
+    if (normalized === 'GLOSA') return EpsResponseStatus.Glosa;
+    if (normalized === 'RECHAZADO') return EpsResponseStatus.Rejected;
+    if (normalized === 'REQUIERE_SOPORTE') return EpsResponseStatus.RequiresSupport;
+    return EpsResponseStatus.InProcess;
+  }
+
   static uploadResponse(raw: ApiRecord, file: File): IncapacidadUploadResult {
     const alertas = apiArray(raw, 'alertas').map((item) =>
       typeof item === 'string' ? item : apiString(item as ApiRecord, 'message', apiString(item as ApiRecord, 'descripcion')),
@@ -38,6 +51,7 @@ export class AiIncapacidadAdapter {
       requiereAccionManual: apiBoolean(raw, 'requiere_accion_manual'),
       alertas,
       scraping: this.toScraping(raw),
+      epsResponse: this.toEpsResponse(raw),
     };
   }
 
@@ -87,6 +101,11 @@ export class AiIncapacidadAdapter {
       anomaliasDetectadas: anomalias,
       fechaProcesamiento: apiString(raw, 'fecha_procesamiento'),
       requiereVerificacionRethus: apiBoolean(raw, 'requiere_verificacion_rethus'),
+      estadoEpsResponse: this.mapEstadoEps(
+        apiString(raw, 'estado_eps_response', apiString(raw, 'estado_eps', 'EN_PROCESO')),
+      ),
+      mensajeEpsResponse: apiString(raw, 'mensaje_eps_response') || undefined,
+      requiereRequerimientoEps: apiBoolean(raw, 'requiere_requerimiento_eps'),
       datosExtraidos: this.toExtractedData(datosRaw),
       scraping: this.toScraping(raw),
       confidence: this.estimateConfidence(estado, findings.length, Boolean(this.toExtractedData(datosRaw))),
@@ -112,6 +131,11 @@ export class AiIncapacidadAdapter {
       requiereVerificacionRethus: detail.requiereVerificacionRethus,
       fechaProcesamiento: detail.fechaProcesamiento,
       scraping: detail.scraping,
+      epsResponse: {
+        estadoEpsResponse: detail.estadoEpsResponse,
+        mensaje: detail.mensajeEpsResponse ?? '',
+        requiereRequerimiento: detail.requiereRequerimientoEps,
+      },
     };
   }
 
@@ -234,8 +258,7 @@ export class AiIncapacidadAdapter {
   }
 
   static toScraping(raw: ApiRecord): ScrapingResults | undefined {
-    const scrapingRaw = raw['scraping'] as ApiRecord | undefined;
-    if (!scrapingRaw) return undefined;
+    const scrapingRaw = (raw['scraping'] as ApiRecord | undefined) ?? raw;
 
     const rethus = this.toScrapingEntry(scrapingRaw['rethus'] as ApiRecord | undefined);
     const adres = this.toScrapingEntry(scrapingRaw['adres'] as ApiRecord | undefined);
@@ -312,7 +335,7 @@ export class AiIncapacidadAdapter {
   }
 
   static toScrapingCompletedEvent(raw: ApiRecord): AiScrapingCompletedEvent | null {
-    const id = apiString(raw, 'incapacidad_id', apiString(raw, 'id'));
+    const id = apiString(raw, 'incapacidadId', apiString(raw, 'incapacidad_id', apiString(raw, 'id')));
     const scraping = this.toScraping(raw);
     if (!id || !scraping) return null;
 
@@ -322,8 +345,45 @@ export class AiIncapacidadAdapter {
       incapacidadId: id,
       estado: estadoRaw ? this.mapEstado(estadoRaw) : undefined,
       scraping: { ...scraping, completed: true },
-      timestamp: apiString(raw, 'timestamp') || undefined,
+      timestamp: apiString(raw, 'finalizadoEn', apiString(raw, 'timestamp')) || undefined,
       mensaje: apiString(raw, 'mensaje') || undefined,
+    };
+  }
+
+  static toEpsResponseCompletedEvent(raw: ApiRecord): EpsResponseCompletedEvent | null {
+    const incapacidadId = apiString(raw, 'incapacidadId', apiString(raw, 'incapacidad_id'));
+    const estadoRaw = apiString(raw, 'estado_eps_response');
+    if (!incapacidadId || !estadoRaw) return null;
+
+    return {
+      incapacidadId,
+      estadoEpsResponse: this.mapEstadoEps(estadoRaw),
+      mensaje: apiString(raw, 'mensaje'),
+      requiereRequerimiento: apiBoolean(raw, 'requiere_requerimiento'),
+      finalizadoEn: apiString(raw, 'finalizadoEn') || undefined,
+    };
+  }
+
+  static toDashboardEstadosEpsSummary(raw: ApiRecord): DashboardEstadosEpsSummary {
+    return {
+      enProceso: apiNumber(raw, 'en_proceso'),
+      glosa: apiNumber(raw, 'glosa'),
+      rechazado: apiNumber(raw, 'rechazado'),
+      requiereSoporte: apiNumber(raw, 'requiere_soporte'),
+      aprobado: apiNumber(raw, 'aprobado'),
+      total: apiNumber(raw, 'total'),
+    };
+  }
+
+  static toEpsResponse(raw: ApiRecord): EpsResponseInfo | undefined {
+    const source = (raw['eps_response'] as ApiRecord | undefined) ?? raw;
+    const estadoRaw = apiString(source, 'estado_eps_response');
+    if (!estadoRaw) return undefined;
+
+    return {
+      estadoEpsResponse: this.mapEstadoEps(estadoRaw),
+      mensaje: apiString(source, 'mensaje'),
+      requiereRequerimiento: apiBoolean(source, 'requiere_requerimiento'),
     };
   }
 

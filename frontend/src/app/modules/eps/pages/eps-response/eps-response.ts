@@ -1,34 +1,30 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { MessageService } from 'primeng/api';
 import { PrimeNGModules } from '@/shared/lib/primeng.module';
-import { EpsResponseStatus, WorkflowStage } from '@sharedWorkflow/types';
+import { EpsResponsePayload, EpsResponseStatus, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
 import { WorkflowFlowNav } from '@sharedWorkflow/components/workflow-flow-nav/workflow-flow-nav';
 import { WorkflowFlowService } from '@sharedWorkflow/services/workflow-flow.service';
-import { FormEpsResponse } from './form-eps-response';
 import { TranslatePipe } from '@/core/i18n/translate.pipe';
-import { I18nService } from '@/core/i18n/i18n.service';
 
 @Component({
   selector: 'eps-response-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PrimeNGModules, WorkflowFlowNav, TranslatePipe],
+  imports: [CommonModule, PrimeNGModules, WorkflowFlowNav, TranslatePipe],
   templateUrl: './eps-response.html',
   styleUrl: './eps-response.scss',
 })
-export class EpsResponsePage {
+export class EpsResponsePage implements OnInit {
   private readonly flow = inject(WorkflowFlowService);
   protected readonly actor = this.flow.actor;
+  protected readonly activeCase = this.flow.activeCase;
   private readonly workflow = inject(WorkflowService);
-  private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
-  private readonly i18n = inject(I18nService);
 
   protected readonly stage = WorkflowStage.EpsResponse;
-  protected readonly form = new FormEpsResponse();
-  protected readonly glosaStatus = EpsResponseStatus.Glosa;
+  protected readonly loading = signal(false);
+  protected readonly lastResponse = signal<EpsResponsePayload | null>(null);
 
   protected readonly outcomes = [
     { status: EpsResponseStatus.Approved, label: 'eps.response.approved', severity: 'success' as const, detail: 'eps.response.detailApproved' },
@@ -37,37 +33,38 @@ export class EpsResponsePage {
     { status: EpsResponseStatus.RequiresSupport, label: 'eps.response.requiresSupport', severity: 'info' as const, detail: 'eps.response.detailRequiresSupport' },
   ];
 
-  protected readonly statusOptions = [
-    { label: 'eps.response.approved', value: EpsResponseStatus.Approved },
-    { label: 'eps.response.glosa', value: EpsResponseStatus.Glosa },
-    { label: 'eps.response.rejected', value: EpsResponseStatus.Rejected },
-    { label: 'eps.response.requiresSupport', value: EpsResponseStatus.RequiresSupport },
-  ];
+  ngOnInit(): void {
+    void this.simularDesdeBackend();
+  }
 
-  submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
+  async simularDesdeBackend(): Promise<void> {
+    if (this.loading()) return;
+    this.loading.set(true);
+    try {
+      const response = await this.workflow.submitEpsResponse({
+        status: EpsResponseStatus.InProcess,
+        responseCode: '',
+        notes: '',
+      });
+      this.lastResponse.set(response);
+      this.messages.add({
+        severity: 'success',
+        summary: `Respuesta EPS: ${response.status}`,
+        detail: response.notes || 'Simulación completada por backend.',
+      });
+      this.flow.navigateNext(this.stage);
+    } catch (err) {
+      this.messages.add({ severity: 'error', summary: 'Error simulando respuesta EPS en backend.' });
+    } finally {
+      this.loading.set(false);
     }
-    const model = this.form.getModel();
-    const statusLabel = this.i18n.t(`eps.response.${model.status}`);
-    this.confirmation.confirm({
-      message: this.i18n.t('eps.response.confirmMessage', { status: statusLabel }),
-      header: this.i18n.t('eps.response.confirmHeader'),
-      accept: () => {
-        (async () => {
-          try {
-            await this.workflow.submitEpsResponse(model);
-            this.messages.add({ severity: 'success', summary: this.i18n.t('eps.response.success') });
-          } catch (err) {
-            this.messages.add({ severity: 'error', summary: this.i18n.t('eps.response.error') });
-          }
-        })();
-      },
-    });
   }
 
   protected goBack(): void {
     this.flow.navigateBack(this.stage);
+  }
+
+  protected goToStart(): void {
+    this.flow.goToStart();
   }
 }

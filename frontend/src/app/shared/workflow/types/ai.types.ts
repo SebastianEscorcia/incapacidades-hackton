@@ -1,4 +1,5 @@
 import { AiResultStatus } from './workflow.enums';
+import { EpsResponseStatus } from './workflow.enums';
 
 /** Estados devueltos por el backend (`/ai`). */
 export enum AiBackendEstado {
@@ -47,6 +48,7 @@ export interface IncapacidadUploadResult {
   requiereAccionManual: boolean;
   alertas: string[];
   scraping?: ScrapingResults;
+  epsResponse?: EpsResponseInfo;
 }
 
 export interface IncapacidadDetail {
@@ -56,6 +58,9 @@ export interface IncapacidadDetail {
   anomaliasDetectadas: string[];
   fechaProcesamiento: string;
   requiereVerificacionRethus: boolean;
+  estadoEpsResponse: EpsResponseStatus;
+  mensajeEpsResponse?: string;
+  requiereRequerimientoEps: boolean;
   datosExtraidos?: IncapacidadExtractedData;
   scraping?: ScrapingResults;
   confidence: number;
@@ -109,4 +114,40 @@ export interface AiScrapingCompletedEvent {
   scraping: ScrapingResults;
   timestamp?: string;
   mensaje?: string;
+}
+
+export interface EpsResponseInfo {
+  estadoEpsResponse: EpsResponseStatus;
+  mensaje: string;
+  requiereRequerimiento: boolean;
+}
+
+export interface EpsResponseCompletedEvent {
+  incapacidadId: string;
+  estadoEpsResponse: EpsResponseStatus;
+  mensaje: string;
+  requiereRequerimiento: boolean;
+  finalizadoEn?: string;
+}
+
+export interface DashboardEstadosEpsSummary {
+  enProceso: number;
+  glosa: number;
+  rechazado: number;
+  requiereSoporte: number;
+  aprobado: number;
+  total: number;
+}
+
+export interface EpsSimulationRequest {
+  incapacidadId?: string;
+  resultadoIA: {
+    estado: string;
+    anomalias_detectadas: string[];
+    datos_extraidos: Record<string, unknown>;
+  };
+  scrapingResultados: {
+    rethus: ScrapingValidationEntry;
+    adres: ScrapingValidationEntry;
+  };
 }

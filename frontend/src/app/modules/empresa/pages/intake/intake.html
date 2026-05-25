@@ -1,4 +1,3 @@
-<p-confirmdialog />
 <p-toast />
 
 <section class="workflow-page">
@@ -80,9 +79,10 @@
 
         <div class="workflow-actions flex gap-3">
           <p-button type="submit" [label]="'empresa.intake.prepareUpload' | translate" icon="pi pi-check"
-            [disabled]="form.invalid || !form.hasFiles() || !hasCompany" />
+            [loading]="loading()"
+            [disabled]="loading() || form.invalid || !form.hasFiles() || !hasCompany" />
           <p-button type="button" [label]="'empresa.intake.attachManually' | translate" icon="pi pi-user-edit" severity="secondary"
-            [disabled]="!hasCompany" (onClick)="anexarManualmente()" />
+            [disabled]="loading() || !hasCompany" (onClick)="anexarManualmente()" />
         </div>
       </form>
     </p-card>

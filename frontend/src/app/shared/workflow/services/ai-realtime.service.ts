@@ -1,31 +1,24 @@
 import { inject, Injectable, NgZone, OnDestroy, signal } from '@angular/core';
 import { Subject } from 'rxjs';
+import { io, Socket } from 'socket.io-client';
 import { environment } from '@environments/environment';
 import { AiIncapacidadAdapter } from '../adapters/ai-incapacidad.adapter';
-import { ApiRecord } from '../adapters/api.helpers';
+import { ApiRecord, apiString } from '../adapters/api.helpers';
 import { AiScrapingStateService } from './ai-scraping-state.service';
-import { AiRealtimeFraudeEvent, AiScrapingCompletedEvent } from '../types/ai.types';
+import { AiRealtimeFraudeEvent, AiScrapingCompletedEvent, EpsResponseCompletedEvent } from '../types/ai.types';
 import { AiResultStatus } from '../types/workflow.enums';
 
 /**
- * Cliente WebSocket nativo (`ws://host/incapacidades`).
- *
- * Formato esperado del mensaje (JSON):
- * `{ "event": "validaciones_scraping_completadas", "data": { "id": "...", "scraping": { ... } } }`
- * o `{ "type": "alerta_fraude", "mensaje": "...", "anomalias": [], "timestamp": "..." }`
+ * Cliente Socket.IO (`http://host/incapacidades`).
  */
 export type AiRealtimeEventName =
   | 'alerta_fraude'
-  | 'incapacidad_aprobada'
-  | 'incapacidad_rechazada'
-  | 'validaciones_scraping_completadas'
-  | 'scraping_completado'
-  | 'validacion_scraping_completada';
+  | 'validacion_documental_completada'
+  | 'eps_response_completada'
+  | 'pong_auditor';
 
 const SCRAPING_EVENTS: AiRealtimeEventName[] = [
-  'validaciones_scraping_completadas',
-  'scraping_completado',
-  'validacion_scraping_completada',
+  'validacion_documental_completada',
 ];
 
 const MAX_RECONNECT_ATTEMPTS = 8;
@@ -33,9 +26,7 @@ const RECONNECT_BASE_MS = 2000;
 
 @Injectable({ providedIn: 'root' })
 export class AiRealtimeService implements OnDestroy {
-  private socket: WebSocket | null = null;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private reconnectAttempts = 0;
+  private socket: Socket | null = null;
   private shouldReconnect = false;
 
   private readonly zone = inject(NgZone);
@@ -47,52 +38,62 @@ export class AiRealtimeService implements OnDestroy {
   readonly incapacidadAprobada$ = new Subject<{ id?: string; mensaje?: string }>();
   readonly incapacidadRechazada$ = new Subject<{ id?: string; mensaje?: string }>();
   readonly scrapingCompletado$ = new Subject<AiScrapingCompletedEvent>();
+  readonly epsResponseCompletada$ = new Subject<EpsResponseCompletedEvent>();
+  readonly pongAuditor$ = new Subject<{ mensaje: string }>();
 
   connect(): void {
     this.shouldReconnect = true;
-
-    if (this.socket?.readyState === WebSocket.OPEN || this.socket?.readyState === WebSocket.CONNECTING) {
+    if (this.socket?.connected || this.socket?.active) {
       return;
     }
 
-    this.clearReconnectTimer();
-    const wsUrl = this.buildWsUrl();
+    const token = this.readAuthToken();
 
     this.zone.runOutsideAngular(() => {
-      this.socket = new WebSocket(wsUrl);
+      this.socket = io(`${environment.apiUrl}/incapacidades`, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        reconnectionDelay: RECONNECT_BASE_MS,
+        auth: token ? { token } : undefined,
+        query: token ? { token } : undefined,
+      });
 
-      this.socket.onopen = () => {
+      this.socket.on('connect', () => {
         this.zone.run(() => {
           this.connected.set(true);
-          this.reconnectAttempts = 0;
         });
-      };
+      });
 
-      this.socket.onclose = () => {
+      this.socket.on('disconnect', () => {
         this.zone.run(() => {
           this.connected.set(false);
-          this.socket = null;
-          this.scheduleReconnect();
         });
-      };
+      });
 
-      this.socket.onerror = () => {
+      this.socket.on('connect_error', () => {
         this.zone.run(() => this.connected.set(false));
-      };
+      });
 
-      this.socket.onmessage = (event) => {
-        void this.readMessage(event.data).then((raw) => {
-          if (raw) this.zone.run(() => this.handleMessage(raw));
-        });
-      };
+      this.socket.on('alerta_fraude', (data: ApiRecord) => {
+        this.zone.run(() => this.handleSocketEvent('alerta_fraude', data));
+      });
+      this.socket.on('validacion_documental_completada', (data: ApiRecord) => {
+        this.zone.run(() => this.handleSocketEvent('validacion_documental_completada', data));
+      });
+      this.socket.on('eps_response_completada', (data: ApiRecord) => {
+        this.zone.run(() => this.handleSocketEvent('eps_response_completada', data));
+      });
+      this.socket.on('pong_auditor', (data: ApiRecord) => {
+        this.zone.run(() => this.handleSocketEvent('pong_auditor', data));
+      });
     });
   }
 
   disconnect(): void {
     this.shouldReconnect = false;
-    this.clearReconnectTimer();
-    this.reconnectAttempts = 0;
-    this.socket?.close();
+    this.socket?.removeAllListeners();
+    this.socket?.disconnect();
     this.socket = null;
     this.connected.set(false);
   }
@@ -103,12 +104,8 @@ export class AiRealtimeService implements OnDestroy {
     this.incapacidadAprobada$.complete();
     this.incapacidadRechazada$.complete();
     this.scrapingCompletado$.complete();
-  }
-
-  private buildWsUrl(): string {
-    const base = environment.apiUrl.replace(/^http/i, 'ws') + '/incapacidades';
-    const token = this.readAuthToken();
-    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+    this.epsResponseCompletada$.complete();
+    this.pongAuditor$.complete();
   }
 
   private readAuthToken(): string {
@@ -127,67 +124,27 @@ export class AiRealtimeService implements OnDestroy {
     return '';
   }
 
-  private scheduleReconnect(): void {
-    if (!this.shouldReconnect || this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) return;
-
-    this.reconnectAttempts += 1;
-    const delay = RECONNECT_BASE_MS * this.reconnectAttempts;
-
-    this.reconnectTimer = setTimeout(() => {
-      if (this.shouldReconnect) this.connect();
-    }, delay);
-  }
-
-  private clearReconnectTimer(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
+  private handleSocketEvent(eventName: AiRealtimeEventName, data: ApiRecord): void {
+    if (SCRAPING_EVENTS.includes(eventName)) {
+      this.emitScrapingCompleted(data);
+      return;
     }
-  }
 
-  private async readMessage(data: unknown): Promise<string | null> {
-    if (typeof data === 'string') return data;
-    if (data instanceof Blob) return data.text();
-    if (data instanceof ArrayBuffer) return new TextDecoder().decode(data);
-    return null;
-  }
+    if (eventName === 'alerta_fraude') {
+      this.alertaFraude$.next(data as unknown as AiRealtimeFraudeEvent);
+      return;
+    }
 
-  private handleMessage(raw: string): void {
-    try {
-      const payload = JSON.parse(raw) as {
-        event?: AiRealtimeEventName;
-        data?: ApiRecord;
-        type?: AiRealtimeEventName;
-      } & ApiRecord;
+    if (eventName === 'eps_response_completada') {
+      const event = AiIncapacidadAdapter.toEpsResponseCompletedEvent(data);
+      if (event) this.epsResponseCompletada$.next(event);
+      return;
+    }
 
-      const eventName = payload.event ?? payload.type;
-      const data = (payload.data ?? payload) as ApiRecord;
-
-      if (eventName && SCRAPING_EVENTS.includes(eventName)) {
-        this.emitScrapingCompleted(data);
-        return;
-      }
-
-      if (!eventName && data['scraping']) {
-        this.emitScrapingCompleted(data);
-        return;
-      }
-
-      if (eventName === 'alerta_fraude') {
-        this.alertaFraude$.next(data as unknown as AiRealtimeFraudeEvent);
-        return;
-      }
-
-      if (eventName === 'incapacidad_aprobada') {
-        this.incapacidadAprobada$.next(data as { id?: string; mensaje?: string });
-        return;
-      }
-
-      if (eventName === 'incapacidad_rechazada') {
-        this.incapacidadRechazada$.next(data as { id?: string; mensaje?: string });
-      }
-    } catch {
-      // Mensaje no JSON: ignorar.
+    if (eventName === 'pong_auditor') {
+      this.pongAuditor$.next({
+        mensaje: apiString(data, 'mensaje', 'Conexión activa con el sistema de IA'),
+      });
     }
   }
 
@@ -200,8 +157,6 @@ export class AiRealtimeService implements OnDestroy {
   }
 
   static mapEventToStatus(event: AiRealtimeEventName): AiResultStatus | null {
-    if (event === 'incapacidad_aprobada') return AiResultStatus.Approved;
-    if (event === 'incapacidad_rechazada') return AiResultStatus.Rejected;
     return null;
   }
 }

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { PrimeNGModules } from '@/shared/lib/primeng.module';
 import { IntakeFileResponse, IntakeValidationStatus, WorkflowStage } from '@sharedWorkflow/types';
 import { WorkflowService } from '@sharedWorkflow/services/workflow.service';
@@ -23,7 +23,6 @@ export class IntakePage implements OnInit {
   private readonly ai = inject(AiIncapacidadService);
   private readonly flow = inject(WorkflowFlowService);
   private readonly workflow = inject(WorkflowService);
-  private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
   private readonly router = inject(Router);
 
@@ -55,10 +54,10 @@ export class IntakePage implements OnInit {
 
     this.flow.activeCase.update((c) => ({
       ...c,
-      status: WorkflowStage.ManualReview,
+      status: WorkflowStage.EpsResponse,
       updatedAt: new Date().toISOString(),
     }));
-    void this.router.navigateByUrl('/eps/manual-review');
+    void this.router.navigateByUrl('/eps/eps-response');
   }
 
   ngOnInit(): void {
@@ -111,6 +110,8 @@ export class IntakePage implements OnInit {
   }
 
   submit(): void {
+    if (this.loading()) return;
+
     this.submitted = true;
     if (!this.hasCompany) {
       this.form.companyId.markAsTouched();
@@ -121,27 +122,7 @@ export class IntakePage implements OnInit {
     }
 
     const model = this.form.getModel();
-    this.confirmation.confirm({
-      message: `Confirmar carga de ${model.fileCount} archivo(s)?`,
-      header: 'Confirmar intake',
-      icon: 'pi pi-upload',
-      accept: () => {
-        (async () => {
-          this.loading.set(true);
-          try {
-            const uploaded = await this.workflow.uploadIntake(model, this.form.files);
-            this.files = uploaded;
-            this.messages.add({ severity: 'success', summary: 'Carga registrada' });
-            this.flow.navigateNext(this.stage);
-          } catch (err) {
-            const summary = this.workflow.isAiApiError(err) ? err.message : 'Error al subir archivos';
-            this.messages.add({ severity: 'error', summary });
-          } finally {
-            this.loading.set(false);
-          }
-        })();
-      },
-    });
+    void this.executeUpload(model);
   }
 
   severity(status: IntakeValidationStatus): 'success' | 'danger' | 'warn' | 'info' {
@@ -173,6 +154,22 @@ export class IntakePage implements OnInit {
       this.files = await this.workflow.getIntakeValidations();
     } catch (err) {
       const summary = this.workflow.isAiApiError(err) ? err.message : 'Error cargando validaciones';
+      this.messages.add({ severity: 'error', summary });
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private async executeUpload(model: ReturnType<FormIntakeUpload['getModel']>): Promise<void> {
+    if (this.loading()) return;
+    this.loading.set(true);
+    try {
+      const uploaded = await this.workflow.uploadIntake(model, this.form.files);
+      this.files = uploaded;
+      this.messages.add({ severity: 'success', summary: 'Carga registrada' });
+      this.flow.navigateNext(this.stage);
+    } catch (err) {
+      const summary = this.workflow.isAiApiError(err) ? err.message : 'Error al subir archivos';
       this.messages.add({ severity: 'error', summary });
     } finally {
       this.loading.set(false);

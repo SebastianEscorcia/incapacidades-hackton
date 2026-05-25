@@ -7,6 +7,7 @@ import {
   nextStep,
   previousStep,
   WorkflowActor,
+  workflowBasePath,
   workflowStepPath,
   WORKFLOW_FLOW,
 } from '../workflow.constants';
@@ -120,6 +121,11 @@ export class WorkflowFlowService {
 
     const currentIndex = WORKFLOW_FLOW.findIndex((item) => item.stage === this.activeCase().status);
     const targetIndex = WORKFLOW_FLOW.findIndex((item) => item.stage === stage);
+
+    if (this.isFlowLocked()) {
+      return targetIndex === currentIndex;
+    }
+
     return targetIndex >= 0 && targetIndex <= currentIndex;
   }
 
@@ -137,13 +143,27 @@ export class WorkflowFlowService {
   }
 
   navigateBack(current: WorkflowStage): void {
+    if (this.isFlowLocked()) return;
     const step = previousStep(current);
     if (!step) return;
     void this.router.navigateByUrl(workflowStepPath(step, this.actor()));
   }
 
+  goToStart(): void {
+    void this.router.navigateByUrl(workflowBasePath(this.actor()));
+  }
+
   getFlow(): FlowStepConfig[] {
     return WORKFLOW_FLOW;
+  }
+
+  isFinalStage(stage: WorkflowStage): boolean {
+    const last = WORKFLOW_FLOW[WORKFLOW_FLOW.length - 1];
+    return Boolean(last && last.stage === stage);
+  }
+
+  isFlowLocked(): boolean {
+    return this.isFinalStage(this.activeCase().status);
   }
 
   addHistoryEvent(

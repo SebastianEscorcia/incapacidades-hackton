@@ -4,7 +4,7 @@ import {
   IntakeValidationStatus,
   WorkflowStage,
 } from './workflow.enums';
-import { IncapacidadExtractedData, ScrapingResults } from './ai.types';
+import { EpsResponseInfo, IncapacidadExtractedData, ScrapingResults } from './ai.types';
 
 export interface WorkflowStep {
   stage: WorkflowStage;
@@ -79,4 +79,5 @@ export interface AiResultSummary {
   requiereVerificacionRethus?: boolean;
   fechaProcesamiento?: string;
   scraping?: ScrapingResults;
+  epsResponse?: EpsResponseInfo;
 }

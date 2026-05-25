@@ -18,7 +18,17 @@ export class DashboardPage implements OnInit {
   private readonly workflow = inject(WorkflowService);
 
   protected loading = true;
-  protected data: DashboardSummary | null = null;
+  protected data: DashboardSummary = {
+    metrics: [
+      { label: 'En proceso', value: 0, icon: 'pi pi-sync' },
+      { label: 'Aprobados', value: 0, icon: 'pi pi-check-circle' },
+      { label: 'Glosas', value: 0, icon: 'pi pi-exclamation-circle' },
+      { label: 'Rechazados', value: 0, icon: 'pi pi-times-circle' },
+    ],
+    recentRequirements: [],
+    recentGlosas: [],
+    finalResults: [],
+  };
 
   ngOnInit(): void {
     void this.loadDashboard();
@@ -29,7 +39,7 @@ export class DashboardPage implements OnInit {
     try {
       this.data = await this.workflow.getDashboard();
     } catch {
-      /* handle error */
+      // Fallback conservado en `data` con ceros.
     } finally {
       this.loading = false;
     }

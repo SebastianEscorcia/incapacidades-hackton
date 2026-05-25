@@ -6,6 +6,4 @@ export default [
   { path: 'ai-result', loadComponent: () => import('./pages/ai-result/ai-result').then((m) => m.AiResultPage) },
   { path: 'business-validation', loadComponent: () => import('./pages/business-validation/business-validation').then((m) => m.BusinessValidationPage) },
   { path: 'institutional-validation', loadComponent: () => import('./pages/institutional-validation/institutional-validation').then((m) => m.InstitutionalValidationPage) },
-  { path: 'expediente', loadComponent: () => import('./pages/expediente/expediente').then((m) => m.ExpedientePage) },
-  { path: 'timeline', loadComponent: () => import('./pages/timeline/timeline').then((m) => m.TimelinePage) },
 ] as Routes;

@@ -44,6 +44,21 @@
       </p-card>
     }
 
+    @if (result.epsResponse) {
+      <p-card header="Respuesta EPS" styleClass="workflow-card mt-4">
+        <div class="flex items-center gap-2">
+          <strong>Estado:</strong>
+          <p-tag [value]="result.epsResponse.estadoEpsResponse" />
+          @if (result.epsResponse.requiereRequerimiento) {
+            <p-tag value="Requiere requerimiento" severity="info" />
+          }
+        </div>
+        @if (result.epsResponse.mensaje) {
+          <p class="mt-2 text-sm workflow-text-muted">{{ result.epsResponse.mensaje }}</p>
+        }
+      </p-card>
+    }
+
     @if (result.datosExtraidos) {
       <p-card header="Datos extraídos por IA" styleClass="workflow-card mt-4">
         <dl class="grid gap-2 text-sm md:grid-cols-2">
@@ -62,9 +77,9 @@
     <div class="mt-4 flex gap-3">
       <p-button [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
       @if (result.status === manual || result.status === rejected) {
-        <a routerLink="/eps/manual-review" pButton [label]="'workflow.aiResult.applyManual' | translate" icon="pi pi-user-edit" severity="warn"></a>
         <p-button [label]="'workflow.aiResult.retry' | translate" icon="pi pi-refresh" severity="secondary" (onClick)="retryFlow()" />
       }
+      <a routerLink="/eps/eps-response" pButton label="Ir a respuesta EPS" icon="pi pi-reply" severity="warn"></a>
     </div>
   }
 </section>

@@ -51,6 +51,7 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
     menu: {
       enterprisePanel: 'Enterprise Panel',
       companiesList: 'Companies List',
+      audit: 'Audit',
       epsPanel: 'EPS/ARL Panel',
       intake: 'Mass upload / Intake',
       history: 'History',
@@ -148,6 +149,7 @@ export const APP_TRANSLATIONS: Record<AppLanguage, TranslationDictionary> = {
     menu: {
       enterprisePanel: 'Panel empresa',
       companiesList: 'Lista de empresas',
+      audit: 'Auditoría',
       epsPanel: 'Panel EPS/ARL',
       intake: 'Carga masiva / Intake',
       history: 'Historial',

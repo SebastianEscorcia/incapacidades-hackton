@@ -1,4 +1,4 @@
-<p-confirmdialog /><p-toast />
+<p-toast />
 <section class="workflow-page">
   <workflow-flow-nav [stage]="stage" />
   <header class="workflow-header">
@@ -11,24 +11,26 @@
     }
   </div>
   <p-card [header]="'eps.response.registerResponse' | translate" styleClass="workflow-card">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-4">
-      <p-select formControlName="status" [options]="statusOptions" optionValue="value" styleClass="w-full">
-        <ng-template pTemplate="selectedItem" let-selectedOption>
-          {{ selectedOption.label | translate }}
-        </ng-template>
-        <ng-template pTemplate="item" let-option>
-          {{ option.label | translate }}
-        </ng-template>
-      </p-select>
-      <input pInputText formControlName="responseCode" [placeholder]="'eps.response.responseCode' | translate" class="w-full" />
-      <textarea pTextarea formControlName="notes" rows="3" class="w-full" [placeholder]="'eps.response.notes' | translate"></textarea>
-      @if (form.epsStatus.value === glosaStatus) {
-        <textarea pTextarea formControlName="correctionNotes" rows="3" class="w-full" [placeholder]="'eps.response.correctionNotes' | translate"></textarea>
+    <div class="grid gap-4">
+      <p class="workflow-text-muted text-sm">
+        La respuesta no se define manualmente en frontend. Se solicita al backend y este retorna el estado final.
+      </p>
+
+      @if (lastResponse()) {
+        <div class="workflow-list-item">
+          <p class="mb-2"><strong>Estado:</strong> {{ lastResponse()!.status }}</p>
+          <p class="mb-0"><strong>Mensaje:</strong> {{ lastResponse()!.notes || 'Sin mensaje adicional' }}</p>
+        </div>
       }
+
       <div class="workflow-actions flex gap-3">
-        <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
-        <p-button type="submit" [label]="'eps.response.submitResponse' | translate" icon="pi pi-reply" [disabled]="form.invalid" />
+        @if (activeCase().status === stage) {
+          <p-button type="button" [label]="'common.backToStart' | translate" icon="pi pi-home" severity="secondary" (onClick)="goToStart()" />
+        } @else {
+          <p-button type="button" [label]="'common.back' | translate" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+        }
+        <p-button type="button" label="Simular respuesta (backend)" icon="pi pi-sync" [loading]="loading()" [disabled]="loading()" (onClick)="simularDesdeBackend()" />
       </div>
-    </form>
+    </div>
   </p-card>
 </section>
