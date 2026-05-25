@@ -90,7 +90,7 @@ export class AiService {
           mimeType: mimeType,
         },
       };
-
+      // Finetuning, reentrenamiento de procesos de ia - > 
       const prompt = 'Analiza este documento de incapacidad y devuelve el JSON estructurado según tus instrucciones.';
       const result = await model.generateContent([prompt, imagePart]);
 

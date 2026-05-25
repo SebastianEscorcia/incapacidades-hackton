@@ -1,6 +1,43 @@
 {
   "informacionBasica": {},
-  "datosAfiliacion": [],
-  "fechaImpresion": "",
-  "estacionOrigen": ""
+  "datosAfiliacion": [
+    {
+      "COLUMNAS": "TIPO DE IDENTIFICACIÓN",
+      "DATOS": "CC"
+    },
+    {
+      "COLUMNAS": "NÚMERO DE IDENTIFICACION",
+      "DATOS": "1065872824"
+    },
+    {
+      "COLUMNAS": "NOMBRES",
+      "DATOS": "LUIS CARLOS"
+    },
+    {
+      "COLUMNAS": "APELLIDOS",
+      "DATOS": "GARCIA URQUIJO"
+    },
+    {
+      "COLUMNAS": "FECHA DE NACIMIENTO",
+      "DATOS": "**/**/**"
+    },
+    {
+      "COLUMNAS": "DEPARTAMENTO",
+      "DATOS": "ATLANTICO"
+    },
+    {
+      "COLUMNAS": "MUNICIPIO",
+      "DATOS": "BARRANQUILLA"
+    },
+    {
+      "ESTADO": "ACTIVO",
+      "ENTIDAD": "EPS SURAMERICANA S.A.",
+      "REGIMEN": "CONTRIBUTIVO",
+      "FECHA DE AFILIACIÓN EFECTIVA": "13/04/2013",
+      "FECHA DE FINALIZACIÓN DE AFILIACIÓN": "31/12/2999",
+      "TIPO DE AFILIADO": "COTIZANTE"
+    }
+  ],
+  "fechaImpresion": "05/24/2026 15:13:36",
+  "estacionOrigen": "192.168.70.220"
 }
